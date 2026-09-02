@@ -192,18 +192,18 @@ export default function DashboardView() {
       {/* Secondary Feature Shortcuts Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div 
-          onClick={() => setActiveTab('termos')}
+          onClick={() => setActiveTab('chamados')}
           className="bg-[#102A40] border border-[#234963] hover:border-[#66C1BF]/60 rounded-[14px] p-4 shadow-sm cursor-pointer transition-all hover:-translate-y-0.5 flex items-center justify-between group"
         >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-[8px] bg-[#66C1BF]/15 border border-[#66C1BF]/30 text-[#66C1BF] flex items-center justify-center shrink-0">
-              <FileText className="w-5 h-5" />
+              <Headphones className="w-5 h-5" />
             </div>
             <div>
               <h4 className="text-sm font-extrabold text-[#F1F7F8] group-hover:text-[#66C1BF] transition-colors">
-                Termos de Notebooks
+                Fila de Chamados
               </h4>
-              <p className="text-[11px] text-[#9EB5C1]">Controle de entrega e devolução de laptops.</p>
+              <p className="text-[11px] text-[#9EB5C1]">Acessar lista completa e filtros avançados.</p>
             </div>
           </div>
           <ArrowRight className="w-4 h-4 text-[#7893A2] group-hover:text-[#66C1BF] transition-colors" />

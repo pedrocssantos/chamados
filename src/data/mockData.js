@@ -164,23 +164,4 @@ export const MOCK_CHAMADOS = [
   }
 ];
 
-export const MOCK_TERMOS_NOTEBOOKS = [
-  {
-    id: 'TERMO-2026-01',
-    colaborador: 'Eng. Carlos Eduardo',
-    cargo: 'Engenheiro Residente',
-    equipamento: 'Dell G15 i7 - 32GB RAM',
-    patrimonio: 'MA-TI-NB-084',
-    dataEntrega: '2026-01-15',
-    status: 'Assinado Digitalmente'
-  },
-  {
-    id: 'TERMO-2026-02',
-    colaborador: 'Engª. Mariana Costa',
-    cargo: 'Engenheira de Planejamento',
-    equipamento: 'MacBook Air M2 - 16GB',
-    patrimonio: 'MA-TI-NB-091',
-    dataEntrega: '2026-03-10',
-    status: 'Assinado Digitalmente'
-  }
-];
+

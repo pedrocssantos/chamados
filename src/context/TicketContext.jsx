@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { MOCK_CHAMADOS, MOCK_OBRAS, MOCK_CATEGORIAS, MOCK_TECNICOS, MOCK_TERMOS_NOTEBOOKS } from '../data/mockData';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { MOCK_CHAMADOS, MOCK_OBRAS, MOCK_CATEGORIAS, MOCK_TECNICOS } from '../data/mockData';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { sendEmailNotification } from '../services/emailService';
 
@@ -72,19 +72,6 @@ const mapFrontChamadoToDb = (item) => ({
   historico: item.historico || [],
 });
 
-const mapDbTermoToFront = (row) => ({
-  id: row.id,
-  codigoTermo: row.codigo_termo,
-  colaboradorNome: row.colaborador_nome,
-  cargo: row.cargo,
-  equipamentoModelo: row.equipamento_modelo,
-  numeroPatrimonio: row.numero_patrimonio,
-  dataEntrega: row.data_entrega,
-  status: row.status,
-  statusTermo: row.status_termo,
-  assinaturaDigital: row.assinatura_digital,
-});
-
 export const TicketProvider = ({ children }) => {
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('theme') || 'dark';
@@ -100,16 +87,6 @@ export const TicketProvider = ({ children }) => {
     } catch (e) {
       console.error('Failed to parse chamados', e);
       return MOCK_CHAMADOS;
-    }
-  });
-
-  const [termos, setTermos] = useState(() => {
-    try {
-      const saved = localStorage.getItem('maximo_termos_notebooks');
-      return saved ? JSON.parse(saved) : MOCK_TERMOS_NOTEBOOKS;
-    } catch (e) {
-      console.error('Failed to parse termos', e);
-      return MOCK_TERMOS_NOTEBOOKS;
     }
   });
 
@@ -140,10 +117,6 @@ export const TicketProvider = ({ children }) => {
   }, [chamados]);
 
   useEffect(() => {
-    localStorage.setItem('maximo_termos_notebooks', JSON.stringify(termos));
-  }, [termos]);
-
-  useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('theme', theme);
   }, [theme]);
@@ -157,9 +130,8 @@ export const TicketProvider = ({ children }) => {
 
     const loadSupabaseData = async () => {
       try {
-        const [chamadosRes, termosRes, obrasRes, catsRes, tecsRes] = await Promise.all([
+        const [chamadosRes, obrasRes, catsRes, tecsRes] = await Promise.all([
           supabase.from('chamados').select('*').order('created_at', { ascending: false }),
-          supabase.from('termos_notebooks').select('*').order('created_at', { ascending: false }),
           supabase.from('obras').select('*'),
           supabase.from('categorias').select('*'),
           supabase.from('tecnicos').select('*')
@@ -168,9 +140,6 @@ export const TicketProvider = ({ children }) => {
         if (isMounted) {
           if (chamadosRes.data && chamadosRes.data.length > 0) {
             setChamados(chamadosRes.data.map(mapDbChamadoToFront));
-          }
-          if (termosRes.data && termosRes.data.length > 0) {
-            setTermos(termosRes.data.map(mapDbTermoToFront));
           }
           if (obrasRes.data && obrasRes.data.length > 0) {
             setObras(obrasRes.data);
@@ -207,17 +176,6 @@ export const TicketProvider = ({ children }) => {
           setSelectedTicket(prev => prev && prev.id === payload.old.id ? null : prev);
         }
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'termos_notebooks' }, (payload) => {
-        if (payload.eventType === 'INSERT') {
-          const newTermo = mapDbTermoToFront(payload.new);
-          setTermos(prev => [newTermo, ...prev.filter(t => t.id !== newTermo.id)]);
-        } else if (payload.eventType === 'UPDATE') {
-          const updated = mapDbTermoToFront(payload.new);
-          setTermos(prev => prev.map(t => t.id === updated.id ? updated : t));
-        } else if (payload.eventType === 'DELETE') {
-          setTermos(prev => prev.filter(t => t.id !== payload.old.id));
-        }
-      })
       .subscribe();
 
     return () => {
@@ -228,44 +186,6 @@ export const TicketProvider = ({ children }) => {
 
   const toggleTheme = () => {
     setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
-  };
-
-  const addTermo = async (termo) => {
-    setTermos(prev => [termo, ...prev]);
-
-    if (isSupabaseConfigured && supabase) {
-      try {
-        await supabase.from('termos_notebooks').insert([{
-          id: termo.id,
-          codigo_termo: termo.codigoTermo,
-          colaborador_nome: termo.colaboradorNome,
-          cargo: termo.cargo,
-          equipamento_modelo: termo.equipamentoModelo,
-          numero_patrimonio: termo.numeroPatrimonio,
-          data_entrega: termo.dataEntrega,
-          status: termo.status || 'Ativo',
-          status_termo: termo.statusTermo || 'Assinado Digitalmente',
-          assinatura_digital: termo.assinaturaDigital || null
-        }]);
-      } catch (err) {
-        console.error('Erro ao salvar termo no Supabase:', err);
-      }
-    }
-  };
-
-  const updateTermo = async (id, updates) => {
-    setTermos(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
-
-    if (isSupabaseConfigured && supabase) {
-      try {
-        const dbUpdates = {};
-        if (updates.status) dbUpdates.status = updates.status;
-        if (updates.statusTermo) dbUpdates.status_termo = updates.statusTermo;
-        await supabase.from('termos_notebooks').update(dbUpdates).eq('id', id);
-      } catch (err) {
-        console.error('Erro ao atualizar termo no Supabase:', err);
-      }
-    }
   };
 
   const createTicket = async (ticketData) => {
@@ -469,10 +389,6 @@ export const TicketProvider = ({ children }) => {
         activeTab,
         setActiveTab,
         chamados,
-        termos,
-        setTermos,
-        addTermo,
-        updateTermo,
         obras,
         categorias,
         tecnicos,

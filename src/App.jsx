@@ -10,7 +10,6 @@ import NewTicketModal from './components/NewTicketModal';
 import ObrasView from './components/ObrasView';
 import CategoriasView from './components/CategoriasView';
 import RelatoriosView from './components/RelatoriosView';
-import TermosNotebooksView from './components/TermosNotebooksView';
 
 function MainContent() {
   const { activeTab } = useTickets();
@@ -21,8 +20,6 @@ function MainContent() {
         return <DashboardView />;
       case 'chamados':
         return <TicketsView />;
-      case 'termos':
-        return <TermosNotebooksView />;
       case 'obras':
         return <ObrasView />;
       case 'categorias':

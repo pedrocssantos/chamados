@@ -5,7 +5,6 @@ import {
   Building, 
   Layers, 
   BarChart3, 
-  FileText, 
   MonitorCheck,
   PlusCircle
 } from 'lucide-react';
@@ -20,7 +19,6 @@ export default function Sidebar() {
   const menuItems = [
     { id: 'dashboard', label: 'Visão Geral TI', icon: LayoutDashboard },
     { id: 'chamados', label: 'Chamados de TI', icon: Headphones, badge: openTicketsCount },
-    { id: 'termos', label: 'Termos de Notebooks', icon: FileText },
     { id: 'obras', label: 'Locais & Obras', icon: Building },
     { id: 'categorias', label: 'Categorias & SLA', icon: Layers },
     { id: 'relatorios', label: 'Relatórios & SLA', icon: BarChart3 },
@@ -61,36 +59,34 @@ export default function Sidebar() {
             );
           })}
         </div>
-      </div>
 
-      {/* Bottom Footer Section in Sidebar */}
-      <div className="space-y-3 pt-3 border-t border-[#234963]">
+        {/* Critical Alerts Banner */}
         {criticalCount > 0 && (
-          <div className="px-2.5 py-2 rounded-[6px] bg-[#E16666]/15 border border-[#E16666]/30 flex items-center justify-between text-xs text-[#E16666] font-bold">
-            <span>Urgências de TI:</span>
-            <span className="bg-[#E16666] text-[#0B1D2D] px-1.5 py-0.5 rounded text-[10px] font-extrabold animate-pulse">
-              {criticalCount}
-            </span>
+          <div className="mt-4 p-3 rounded-[6px] bg-[#E16666]/10 border border-[#E16666]/30">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#E16666] animate-ping" />
+              <p className="text-xs font-bold text-[#E16666]">Urgências de TI: {criticalCount}</p>
+            </div>
+            <p className="text-[10.5px] text-[#9EB5C1] mt-1">
+              Chamados com link ou servidores fora do ar que exigem suporte imediato.
+            </p>
           </div>
         )}
+      </div>
 
+      {/* Quick Action Bottom & Info */}
+      <div className="pt-3 border-t border-[#234963] space-y-2">
         <button
-          type="button"
           onClick={() => setIsNewTicketOpen(true)}
-          className="w-full py-2 px-3 rounded-[6px] bg-[#14334C] hover:bg-[#66C1BF] text-[#66C1BF] hover:text-[#08252B] border border-[#234963] text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all"
+          className="w-full py-2 px-3 rounded-[6px] bg-[#14334C] hover:bg-[#163A55] text-[#66C1BF] border border-[#234963] hover:border-[#66C1BF] text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm"
         >
-          <PlusCircle className="w-3.5 h-3.5" />
+          <PlusCircle className="w-4 h-4" />
           <span>Novo Chamado TI</span>
         </button>
 
-        <div className="flex items-center justify-between text-[11px] text-[#7893A2] px-1">
-          <div className="flex items-center gap-1.5">
-            <MonitorCheck className="w-3.5 h-3.5 text-[#66C1BF]" />
-            <span className="font-extrabold text-[#66C1BF] tracking-wide">MAXIMO ALDANA TI</span>
-          </div>
-          <span className="font-mono text-[10px] text-[#7893A2] bg-[#14334C] px-1.5 py-0.5 rounded border border-[#234963]">
-            v1.0
-          </span>
+        <div className="px-1 text-center">
+          <p className="text-[10px] text-[#7893A2]">Maximo Aldana TI v1.0</p>
+          <p className="text-[9px] text-[#5E7A8A]">Construtora e Incorporadora</p>
         </div>
       </div>
     </aside>

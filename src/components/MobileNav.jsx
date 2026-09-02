@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LayoutDashboard, Headphones, Building, Menu, Layers, BarChart3, Plus, X, FileText } from 'lucide-react';
+import { LayoutDashboard, Headphones, Building, Menu, Layers, BarChart3, Plus, X } from 'lucide-react';
 import { useTickets } from '../context/TicketContext';
 
 export default function MobileNav() {
@@ -10,8 +10,14 @@ export default function MobileNav() {
     <>
       {/* Mobile Drawer Overlay if "Mais" is tapped */}
       {isMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-50 bg-[#0B1D2D]/90 backdrop-blur-sm flex flex-col justify-end">
-          <div className="bg-[#102A40] border-t border-[#234963] p-4 rounded-t-[20px] space-y-3 animate-page-enter">
+        <div 
+          onClick={() => setIsMenuOpen(false)}
+          className="md:hidden fixed inset-0 z-50 bg-[#0B1D2D]/90 backdrop-blur-sm flex flex-col justify-end"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-[#102A40] border-t border-[#234963] p-4 rounded-t-[20px] space-y-3 animate-page-enter"
+          >
             <div className="flex items-center justify-between pb-2 border-b border-[#234963]">
               <h3 className="text-sm font-bold text-[#F1F7F8]">Menu de Navegação TI</h3>
               <button 
@@ -22,13 +28,6 @@ export default function MobileNav() {
               </button>
             </div>
             <div className="grid grid-cols-2 gap-2 pt-1">
-              <button
-                onClick={() => { setActiveTab('termos'); setIsMenuOpen(false); }}
-                className="flex items-center gap-2.5 p-3 rounded-[8px] bg-[#14334C] border border-[#234963] text-left text-xs font-semibold text-[#F1F7F8]"
-              >
-                <FileText className="w-4 h-4 text-[#66C1BF]" />
-                <span>Termos de Notebooks</span>
-              </button>
               <button
                 onClick={() => { setActiveTab('categorias'); setIsMenuOpen(false); }}
                 className="flex items-center gap-2.5 p-3 rounded-[8px] bg-[#14334C] border border-[#234963] text-left text-xs font-semibold text-[#F1F7F8]"
@@ -45,10 +44,10 @@ export default function MobileNav() {
               </button>
               <button
                 onClick={() => { setIsNewTicketOpen(true); setIsMenuOpen(false); }}
-                className="flex items-center gap-2.5 p-3 rounded-[8px] bg-[#66C1BF] text-[#08252B] font-bold text-left text-xs"
+                className="col-span-2 flex items-center justify-center gap-2.5 p-3 rounded-[8px] bg-[#66C1BF] text-[#08252B] font-bold text-xs shadow-sm"
               >
                 <Plus className="w-4 h-4" />
-                <span>Abrir Chamado</span>
+                <span>Abrir Novo Chamado</span>
               </button>
             </div>
           </div>
@@ -79,16 +78,6 @@ export default function MobileNav() {
           </button>
 
           <button
-            onClick={() => setActiveTab('termos')}
-            className={`flex flex-col items-center py-1 px-2.5 rounded-[6px] text-[11px] font-semibold transition-colors ${
-              activeTab === 'termos' ? 'text-[#66C1BF] font-bold' : 'text-[#9EB5C1] hover:text-[#F1F7F8]'
-            }`}
-          >
-            <FileText className="w-4 h-4 mb-0.5" />
-            <span>Termos</span>
-          </button>
-
-          <button
             onClick={() => setActiveTab('obras')}
             className={`flex flex-col items-center py-1 px-2.5 rounded-[6px] text-[11px] font-semibold transition-colors ${
               activeTab === 'obras' ? 'text-[#66C1BF] font-bold' : 'text-[#9EB5C1] hover:text-[#F1F7F8]'
@@ -99,8 +88,18 @@ export default function MobileNav() {
           </button>
 
           <button
+            onClick={() => setActiveTab('categorias')}
+            className={`flex flex-col items-center py-1 px-2.5 rounded-[6px] text-[11px] font-semibold transition-colors ${
+              activeTab === 'categorias' ? 'text-[#66C1BF] font-bold' : 'text-[#9EB5C1] hover:text-[#F1F7F8]'
+            }`}
+          >
+            <Layers className="w-4 h-4 mb-0.5" />
+            <span>Categorias</span>
+          </button>
+
+          <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="flex flex-col items-center py-1 px-2.5 rounded-[6px] text-[11px] font-semibold transition-colors text-[#9EB5C1] hover:text-[#F1F7F8]"
+            className="flex flex-col items-center py-1 px-2.5 rounded-[6px] text-[11px] font-semibold text-[#9EB5C1] hover:text-[#F1F7F8] transition-colors"
           >
             <Menu className="w-4 h-4 mb-0.5" />
             <span>Mais</span>
