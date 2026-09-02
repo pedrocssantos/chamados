@@ -1,35 +1,62 @@
 import React, { useState } from 'react';
-import { Layers, Clock, Plus, Trash2, X, CheckCircle2 } from 'lucide-react';
+import { Layers, Clock, Plus, Trash2, X, CheckCircle2, Edit } from 'lucide-react';
 import { useTickets } from '../context/TicketContext';
 
 export default function CategoriasView() {
-  const { categorias, chamados, addCategoria, deleteCategoria, setTicketFilters } = useTickets();
+  const { categorias, chamados, addCategoria, editCategoria, deleteCategoria, setTicketFilters } = useTickets();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingCategoria, setEditingCategoria] = useState(null);
+
+  // Form states
   const [nome, setNome] = useState('');
   const [slaHoras, setSlaHoras] = useState('8');
   const [cor, setCor] = useState('#66C1BF');
   const [descricao, setDescricao] = useState('');
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!nome.trim()) return;
-
-    addCategoria({
-      nome,
-      slaHoras: parseInt(slaHoras, 10) || 8,
-      cor,
-      descricao
-    });
-
+  const openCreateModal = () => {
+    setEditingCategoria(null);
     setNome('');
     setSlaHoras('8');
     setCor('#66C1BF');
     setDescricao('');
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (cat) => {
+    setEditingCategoria(cat);
+    setNome(cat.nome);
+    setSlaHoras(String(cat.slaHoras || cat.sla_horas || 8));
+    setCor(cat.cor || '#66C1BF');
+    setDescricao(cat.descricao || '');
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!nome.trim()) return;
+
+    if (editingCategoria) {
+      editCategoria(editingCategoria.id, {
+        nome,
+        slaHoras: parseInt(slaHoras, 10) || 8,
+        cor,
+        descricao
+      });
+    } else {
+      addCategoria({
+        nome,
+        slaHoras: parseInt(slaHoras, 10) || 8,
+        cor,
+        descricao
+      });
+    }
+
     setIsModalOpen(false);
+    setEditingCategoria(null);
   };
 
   const handleDelete = (id, nomeCat) => {
-    if (window.confirm(`Deseja remover a categoria "${nomeCat}"?`)) {
+    if (window.confirm(`Deseja realmente remover a categoria "${nomeCat}"?`)) {
       deleteCategoria(id);
     }
   };
@@ -52,7 +79,7 @@ export default function CategoriasView() {
 
         <button
           type="button"
-          onClick={() => setIsModalOpen(true)}
+          onClick={openCreateModal}
           className="px-4 py-2.5 rounded-[8px] bg-[#66C1BF] hover:bg-[#4FA9A7] text-[#08252B] font-extrabold text-xs flex items-center gap-1.5 shadow-sm transition-all shrink-0 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
@@ -79,14 +106,27 @@ export default function CategoriasView() {
                   </span>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => handleDelete(cat.id, cat.nome)}
-                  className="p-1 rounded bg-[#14334C] hover:bg-[#E16666] text-[#7893A2] hover:text-[#0B1D2D] border border-[#234963] transition-colors"
-                  title="Excluir Categoria"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
+                <div className="flex items-center gap-1.5">
+                  {/* Edit Button */}
+                  <button
+                    type="button"
+                    onClick={() => openEditModal(cat)}
+                    className="p-1 rounded bg-[#14334C] hover:bg-[#66C1BF] text-[#7893A2] hover:text-[#08252B] border border-[#234963] transition-colors cursor-pointer"
+                    title="Editar Categoria"
+                  >
+                    <Edit className="w-3.5 h-3.5" />
+                  </button>
+
+                  {/* Delete Button */}
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(cat.id, cat.nome)}
+                    className="p-1 rounded bg-[#14334C] hover:bg-[#E16666] text-[#7893A2] hover:text-[#0B1D2D] border border-[#234963] transition-colors cursor-pointer"
+                    title="Excluir Categoria"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
 
               <h3 className="text-base font-extrabold text-[#F1F7F8]">{cat.nome}</h3>
@@ -107,14 +147,14 @@ export default function CategoriasView() {
         })}
       </div>
 
-      {/* MODAL: NOVA CATEGORIA */}
+      {/* MODAL: NOVA CATEGORIA / EDITAR CATEGORIA */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[9999] bg-[#0B1D2D]/80 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-[#102A40] border border-[#66C1BF]/40 rounded-[12px] max-w-lg w-full p-6 shadow-2xl space-y-4 animate-page-enter">
             <div className="flex items-center justify-between pb-3 border-b border-[#234963]">
               <h3 className="text-base font-extrabold text-[#F1F7F8] flex items-center gap-2">
                 <Layers className="w-5 h-5 text-[#66C1BF]" />
-                <span>Cadastrar Nova Categoria e SLA</span>
+                <span>{editingCategoria ? 'Editar Categoria de SLA' : 'Cadastrar Nova Categoria e SLA'}</span>
               </h3>
               <button 
                 onClick={() => setIsModalOpen(false)}
@@ -133,7 +173,7 @@ export default function CategoriasView() {
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
                   placeholder="Ex: Cabeamento Estruturado e Fibra"
-                  className="w-full px-3 py-2.5 rounded-[6px] bg-[#081724] border border-[#234963] focus:border-[#66C1BF] text-[#F1F7F8] outline-none"
+                  className="w-full px-3 py-2.5 rounded-[6px] bg-[#081724] border border-[#234963] focus:border-[#66C1BF] text-[#F1F7F8] font-bold outline-none"
                 />
               </div>
 
@@ -186,10 +226,10 @@ export default function CategoriasView() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-[6px] bg-[#66C1BF] hover:bg-[#4FA9A7] text-[#08252B] font-extrabold flex items-center gap-1.5"
+                  className="px-5 py-2 rounded-[6px] bg-[#66C1BF] hover:bg-[#4FA9A7] text-[#08252B] font-extrabold flex items-center gap-1.5 cursor-pointer shadow-sm"
                 >
                   <CheckCircle2 className="w-4 h-4" />
-                  <span>Salvar Categoria</span>
+                  <span>{editingCategoria ? 'Salvar Modificações' : 'Salvar Categoria'}</span>
                 </button>
               </div>
             </form>

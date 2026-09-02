@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LayoutDashboard, Headphones, Building, Menu, Layers, BarChart3, Plus, X } from 'lucide-react';
+import { LayoutDashboard, Headphones, Building, Menu, Layers, BarChart3, Plus, X, User } from 'lucide-react';
 import { useTickets } from '../context/TicketContext';
 
 export default function MobileNav() {
@@ -19,7 +19,7 @@ export default function MobileNav() {
             className="bg-[#102A40] border-t border-[#234963] p-4 rounded-t-[20px] space-y-3 animate-page-enter"
           >
             <div className="flex items-center justify-between pb-2 border-b border-[#234963]">
-              <h3 className="text-sm font-bold text-[#F1F7F8]">Menu de Navegação TI</h3>
+              <h3 className="text-sm font-bold text-[#F1F7F8]">Menu de Navegação</h3>
               <button 
                 onClick={() => setIsMenuOpen(false)}
                 className="p-1 text-[#7893A2] hover:text-[#66C1BF]"
@@ -40,7 +40,14 @@ export default function MobileNav() {
                 className="flex items-center gap-2.5 p-3 rounded-[8px] bg-[#14334C] border border-[#234963] text-left text-xs font-semibold text-[#F1F7F8]"
               >
                 <BarChart3 className="w-4 h-4 text-[#66C1BF]" />
-                <span>Relatórios de Atendimento</span>
+                <span>Relatórios</span>
+              </button>
+              <button
+                onClick={() => { setActiveTab('perfil'); setIsMenuOpen(false); }}
+                className="col-span-2 flex items-center justify-center gap-2.5 p-3 rounded-[8px] bg-[#14334C] border border-[#234963] text-xs font-bold text-[#F1F7F8]"
+              >
+                <User className="w-4 h-4 text-[#66C1BF]" />
+                <span>Meu Perfil de Usuário</span>
               </button>
               <button
                 onClick={() => { setIsNewTicketOpen(true); setIsMenuOpen(false); }}

@@ -134,8 +134,18 @@ export default function Header() {
                 </div>
 
                 <button
+                  type="button"
+                  onClick={() => { setActiveTab('perfil'); setShowProfileMenu(false); }}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-[6px] text-xs font-bold text-[#F1F7F8] hover:bg-[#14334C] hover:text-[#66C1BF] transition-colors text-left cursor-pointer"
+                >
+                  <User className="w-3.5 h-3.5 text-[#66C1BF]" />
+                  <span>Meu Perfil</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => { logout(); setShowProfileMenu(false); }}
-                  className="w-full flex items-center gap-2 px-3 py-2 rounded-[6px] text-xs font-bold text-[#E16666] hover:bg-[#E16666]/15 transition-colors text-left"
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-[6px] text-xs font-bold text-[#E16666] hover:bg-[#E16666]/15 transition-colors text-left cursor-pointer"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                   <span>Sair do Sistema</span>

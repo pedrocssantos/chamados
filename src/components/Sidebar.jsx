@@ -7,7 +7,8 @@ import {
   BarChart3, 
   PlusCircle,
   HardHat,
-  ShieldCheck
+  ShieldCheck,
+  User
 } from 'lucide-react';
 import { useTickets } from '../context/TicketContext';
 
@@ -27,12 +28,14 @@ export default function Sidebar() {
     { id: 'dashboard', label: 'Painel da Minha Obra', icon: LayoutDashboard },
     { id: 'chamados', label: 'Histórico da Obra', icon: Headphones, badge: openTicketsCount },
     { id: 'obras', label: 'Informações da Obra', icon: Building },
+    { id: 'perfil', label: 'Meu Perfil', icon: User },
   ] : [
     { id: 'dashboard', label: 'Visão Geral TI', icon: LayoutDashboard },
     { id: 'chamados', label: 'Chamados de TI', icon: Headphones, badge: openTicketsCount },
     { id: 'obras', label: 'Obras e Canteiros', icon: Building },
     { id: 'categorias', label: 'Categorias e SLA', icon: Layers },
     { id: 'relatorios', label: 'Relatórios de Atendimento', icon: BarChart3 },
+    { id: 'perfil', label: 'Meu Perfil', icon: User },
   ];
 
   return (

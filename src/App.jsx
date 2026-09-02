@@ -11,6 +11,7 @@ import NewTicketModal from './components/NewTicketModal';
 import ObrasView from './components/ObrasView';
 import CategoriasView from './components/CategoriasView';
 import RelatoriosView from './components/RelatoriosView';
+import ProfileView from './components/ProfileView';
 import AuthView from './components/AuthView';
 
 function MainContent() {
@@ -33,6 +34,8 @@ function MainContent() {
         return <CategoriasView />;
       case 'relatorios':
         return <RelatoriosView />;
+      case 'perfil':
+        return <ProfileView />;
       default:
         return currentUser.role === 'cliente' ? <ClientDashboardView /> : <DashboardView />;
     }

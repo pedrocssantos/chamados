@@ -1,36 +1,67 @@
 import React, { useState } from 'react';
-import { Building, MapPin, User, LifeBuoy, Plus, Trash2, X, CheckCircle2 } from 'lucide-react';
+import { Building, MapPin, User, LifeBuoy, Plus, Trash2, X, CheckCircle2, Edit } from 'lucide-react';
 import { useTickets } from '../context/TicketContext';
 
 export default function ObrasView() {
-  const { obras, chamados, setActiveTab, addObra, deleteObra, setTicketFilters } = useTickets();
+  const { obras, chamados, setActiveTab, addObra, editObra, deleteObra, setTicketFilters } = useTickets();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingObra, setEditingObra] = useState(null);
+
+  // Form states
   const [nome, setNome] = useState('');
   const [cidade, setCidade] = useState('');
   const [engenheiro, setEngenheiro] = useState('');
   const [progresso, setProgresso] = useState('50');
+  const [status, setStatus] = useState('Operacional');
+
+  const openCreateModal = () => {
+    setEditingObra(null);
+    setNome('');
+    setCidade('');
+    setEngenheiro('');
+    setProgresso('50');
+    setStatus('Operacional');
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (obra) => {
+    setEditingObra(obra);
+    setNome(obra.nome);
+    setCidade(obra.cidade);
+    setEngenheiro(obra.engenheiro || '');
+    setProgresso(String(obra.progresso || 0));
+    setStatus(obra.status || 'Operacional');
+    setIsModalOpen(true);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!nome.trim() || !cidade.trim()) return;
 
-    addObra({
-      nome,
-      cidade,
-      engenheiro: engenheiro || 'Engenharia de Campo',
-      progresso: parseInt(progresso, 10) || 0,
-      status: 'Operacional'
-    });
+    if (editingObra) {
+      editObra(editingObra.id, {
+        nome,
+        cidade,
+        engenheiro: engenheiro || 'Engenharia de Campo',
+        progresso: parseInt(progresso, 10) || 0,
+        status
+      });
+    } else {
+      addObra({
+        nome,
+        cidade,
+        engenheiro: engenheiro || 'Engenharia de Campo',
+        progresso: parseInt(progresso, 10) || 0,
+        status
+      });
+    }
 
-    setNome('');
-    setCidade('');
-    setEngenheiro('');
-    setProgresso('50');
     setIsModalOpen(false);
+    setEditingObra(null);
   };
 
   const handleDelete = (id, nomeObra) => {
-    if (window.confirm(`Deseja remover a obra "${nomeObra}"?`)) {
+    if (window.confirm(`Deseja realmente remover a obra "${nomeObra}"? Esta ação removerá a obra do catálogo.`)) {
       deleteObra(id);
     }
   };
@@ -53,7 +84,7 @@ export default function ObrasView() {
 
         <button
           type="button"
-          onClick={() => setIsModalOpen(true)}
+          onClick={openCreateModal}
           className="px-4 py-2.5 rounded-[8px] bg-[#66C1BF] hover:bg-[#4FA9A7] text-[#08252B] font-extrabold text-xs flex items-center gap-1.5 shadow-sm transition-all shrink-0 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
@@ -83,14 +114,26 @@ export default function ObrasView() {
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <span className="font-mono text-xs text-[#66C1BF] bg-[#081724] px-2.5 py-1 rounded border border-[#234963]">
                     {obra.codigoQr || obra.id}
                   </span>
+                  
+                  {/* Edit Button */}
+                  <button
+                    type="button"
+                    onClick={() => openEditModal(obra)}
+                    className="p-1.5 rounded bg-[#14334C] hover:bg-[#66C1BF] text-[#7893A2] hover:text-[#08252B] border border-[#234963] transition-colors cursor-pointer"
+                    title="Editar Informações da Obra"
+                  >
+                    <Edit className="w-3.5 h-3.5" />
+                  </button>
+
+                  {/* Delete Button */}
                   <button
                     type="button"
                     onClick={() => handleDelete(obra.id, obra.nome)}
-                    className="p-1.5 rounded bg-[#14334C] hover:bg-[#E16666] text-[#7893A2] hover:text-[#0B1D2D] border border-[#234963] transition-colors"
+                    className="p-1.5 rounded bg-[#14334C] hover:bg-[#E16666] text-[#7893A2] hover:text-[#0B1D2D] border border-[#234963] transition-colors cursor-pointer"
                     title="Excluir Obra"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -135,14 +178,14 @@ export default function ObrasView() {
         })}
       </div>
 
-      {/* MODAL: NOVA OBRA */}
+      {/* MODAL: NOVA OBRA / EDITAR OBRA */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[9999] bg-[#0B1D2D]/80 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-[#102A40] border border-[#66C1BF]/40 rounded-[12px] max-w-lg w-full p-6 shadow-2xl space-y-4 animate-page-enter">
             <div className="flex items-center justify-between pb-3 border-b border-[#234963]">
               <h3 className="text-base font-extrabold text-[#F1F7F8] flex items-center gap-2">
                 <Building className="w-5 h-5 text-[#66C1BF]" />
-                <span>Cadastrar Nova Obra / Canteiro</span>
+                <span>{editingObra ? 'Editar Obra / Canteiro' : 'Cadastrar Nova Obra / Canteiro'}</span>
               </h3>
               <button 
                 onClick={() => setIsModalOpen(false)}
@@ -161,7 +204,7 @@ export default function ObrasView() {
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
                   placeholder="Ex: Obra Residencial Bella Vista"
-                  className="w-full px-3 py-2.5 rounded-[6px] bg-[#081724] border border-[#234963] focus:border-[#66C1BF] text-[#F1F7F8] outline-none"
+                  className="w-full px-3 py-2.5 rounded-[6px] bg-[#081724] border border-[#234963] focus:border-[#66C1BF] text-[#F1F7F8] font-bold outline-none"
                 />
               </div>
 
@@ -190,18 +233,32 @@ export default function ObrasView() {
                 </div>
               </div>
 
-              <div>
-                <div className="flex justify-between font-bold mb-1">
-                  <label className="text-[#9EB5C1]">Avanço Inicial da Obra: {progresso}%</label>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[#9EB5C1] font-bold block mb-1">Status Operacional</label>
+                  <select
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-[6px] bg-[#081724] border border-[#234963] focus:border-[#66C1BF] text-[#F1F7F8] outline-none font-bold"
+                  >
+                    <option value="Operacional">Operacional</option>
+                    <option value="Em Fundação">Em Fundação</option>
+                    <option value="Em Acabamento">Em Acabamento</option>
+                    <option value="Entregue">Entregue</option>
+                  </select>
                 </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={progresso}
-                  onChange={(e) => setProgresso(e.target.value)}
-                  className="w-full accent-[#66C1BF]"
-                />
+
+                <div>
+                  <label className="text-[#9EB5C1] font-bold block mb-1">Avanço Físico: {progresso}%</label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={progresso}
+                    onChange={(e) => setProgresso(e.target.value)}
+                    className="w-full accent-[#66C1BF] mt-2"
+                  />
+                </div>
               </div>
 
               <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#234963]">
@@ -214,10 +271,10 @@ export default function ObrasView() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-[6px] bg-[#66C1BF] hover:bg-[#4FA9A7] text-[#08252B] font-extrabold flex items-center gap-1.5"
+                  className="px-5 py-2 rounded-[6px] bg-[#66C1BF] hover:bg-[#4FA9A7] text-[#08252B] font-extrabold flex items-center gap-1.5 cursor-pointer shadow-sm"
                 >
                   <CheckCircle2 className="w-4 h-4" />
-                  <span>Salvar Obra</span>
+                  <span>{editingObra ? 'Salvar Modificações' : 'Salvar Obra'}</span>
                 </button>
               </div>
             </form>

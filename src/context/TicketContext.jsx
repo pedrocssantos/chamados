@@ -629,15 +629,100 @@ export const TicketProvider = ({ children }) => {
     return newCat;
   };
 
-  const deleteCategoria = async (catId) => {
-    setCategorias(prev => prev.filter(c => c.id !== catId));
-    if (isSupabaseConfigured && supabase) {
+  const editObra = async (obraId, updates) => {
+    let updatedObj = null;
+    setObras(prev => prev.map(o => {
+      if (o.id === obraId) {
+        const updated = {
+          ...o,
+          nome: updates.nome || o.nome,
+          cidade: updates.cidade || o.cidade,
+          engenheiro: updates.engenheiro !== undefined ? updates.engenheiro : o.engenheiro,
+          progresso: updates.progresso !== undefined ? parseInt(updates.progresso, 10) : o.progresso,
+          status: updates.status || o.status
+        };
+        updatedObj = updated;
+        return updated;
+      }
+      return o;
+    }));
+
+    if (updatedObj && isSupabaseConfigured && supabase) {
       try {
-        await supabase.from('categorias').delete().eq('id', catId);
+        await supabase.from('obras').update({
+          nome: updatedObj.nome,
+          cidade: updatedObj.cidade,
+          engenheiro: updatedObj.engenheiro,
+          progresso: updatedObj.progresso,
+          status: updatedObj.status
+        }).eq('id', obraId);
       } catch (err) {
-        console.error('Erro ao deletar categoria no Supabase:', err);
+        console.error('Erro ao editar obra no Supabase:', err);
       }
     }
+  };
+
+  const editCategoria = async (catId, updates) => {
+    let updatedObj = null;
+    setCategorias(prev => prev.map(c => {
+      if (c.id === catId) {
+        const updated = {
+          ...c,
+          nome: updates.nome || c.nome,
+          slaHoras: updates.slaHoras !== undefined ? parseInt(updates.slaHoras, 10) : c.slaHoras,
+          cor: updates.cor || c.cor,
+          descricao: updates.descricao !== undefined ? updates.descricao : c.descricao
+        };
+        updatedObj = updated;
+        return updated;
+      }
+      return c;
+    }));
+
+    if (updatedObj && isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('categorias').update({
+          nome: updatedObj.nome,
+          sla_horas: updatedObj.slaHoras,
+          cor: updatedObj.cor,
+          descricao: updatedObj.descricao
+        }).eq('id', catId);
+      } catch (err) {
+        console.error('Erro ao editar categoria no Supabase:', err);
+      }
+    }
+  };
+
+  const updateUserProfile = (profileData) => {
+    if (!currentUser) return;
+    const initials = (profileData.nome || currentUser.nome)
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map(n => n[0].toUpperCase())
+      .join('');
+
+    let obraNome = currentUser.obraNome;
+    if (profileData.obraId) {
+      const foundObra = obras.find(o => o.id === profileData.obraId);
+      if (foundObra) obraNome = foundObra.nome;
+    }
+
+    const updatedUser = {
+      ...currentUser,
+      nome: profileData.nome || currentUser.nome,
+      email: profileData.email || currentUser.email,
+      telefone: profileData.telefone !== undefined ? profileData.telefone : currentUser.telefone,
+      cargo: profileData.cargo || currentUser.cargo,
+      obraId: profileData.obraId || currentUser.obraId,
+      obraNome: obraNome,
+      password: profileData.password || currentUser.password,
+      avatar: initials || currentUser.avatar || 'MA'
+    };
+
+    setCurrentUser(updatedUser);
+    setUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
+    return { success: true, user: updatedUser };
   };
 
   return (
@@ -663,9 +748,12 @@ export const TicketProvider = ({ children }) => {
         deleteTicket,
         editTicket,
         addObra,
+        editObra,
         deleteObra,
         addCategoria,
+        editCategoria,
         deleteCategoria,
+        updateUserProfile,
         user: currentUser,
         currentUser,
         login,
