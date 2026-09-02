@@ -14,7 +14,7 @@ export default function ObrasView() {
             <Building className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-xl font-extrabold text-[#F1F7F8]">Obras & Empreendimentos</h2>
+            <h2 className="text-xl font-extrabold text-[#F1F7F8]">Obras e Canteiros</h2>
             <p className="text-xs text-[#9EB5C1]">
               Canteiros de obra ativos e sedes operacionais da Construtora Maximo Aldana.
             </p>

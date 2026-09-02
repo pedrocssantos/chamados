@@ -45,7 +45,7 @@ export default function Header() {
               )}
             </div>
             <p className="text-[11px] font-bold text-[#66C1BF] tracking-[0.02em] leading-none mt-0.5">
-              {user?.role === 'cliente' ? `Portal do Canteiro: ${user?.obraNome}` : 'Suporte Técnico Central & Infraestrutura'}
+              {user?.role === 'cliente' ? `Portal do Canteiro: ${user?.obraNome}` : 'Suporte Técnico e Infraestrutura'}
             </p>
           </div>
         </button>

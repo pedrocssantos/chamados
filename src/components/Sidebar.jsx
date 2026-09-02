@@ -30,9 +30,9 @@ export default function Sidebar() {
   ] : [
     { id: 'dashboard', label: 'Visão Geral TI', icon: LayoutDashboard },
     { id: 'chamados', label: 'Chamados de TI', icon: Headphones, badge: openTicketsCount },
-    { id: 'obras', label: 'Locais & Obras', icon: Building },
-    { id: 'categorias', label: 'Categorias & SLA', icon: Layers },
-    { id: 'relatorios', label: 'Relatórios & SLA', icon: BarChart3 },
+    { id: 'obras', label: 'Obras e Canteiros', icon: Building },
+    { id: 'categorias', label: 'Categorias e SLA', icon: Layers },
+    { id: 'relatorios', label: 'Relatórios de Atendimento', icon: BarChart3 },
   ];
 
   return (

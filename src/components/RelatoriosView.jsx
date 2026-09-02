@@ -166,7 +166,7 @@ export default function RelatoriosView() {
             <BarChart3 className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-xl font-extrabold text-[#F1F7F8]">Relatórios & Indicadores de SLA</h2>
+            <h2 className="text-xl font-extrabold text-[#F1F7F8]">Relatórios de Atendimento e Prazos SLA</h2>
             <p className="text-xs text-[#9EB5C1]">
               Métricas consolidadas de eficiência de atendimento e tempo de resposta nas obras.
             </p>

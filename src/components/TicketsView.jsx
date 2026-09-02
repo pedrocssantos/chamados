@@ -467,7 +467,7 @@ export default function TicketsView() {
                   <th className="py-3 px-4 cursor-pointer hover:text-[#F1F7F8]" onClick={() => requestSort('dataCriacao')}>
                     Título e Criação {getSortIcon('dataCriacao')}
                   </th>
-                  <th className="py-3 px-4">Obra & Local</th>
+                  <th className="py-3 px-4">Obra e Local</th>
                   <th className="py-3 px-4">Categoria</th>
                   <th className="py-3 px-4 cursor-pointer hover:text-[#F1F7F8]" onClick={() => requestSort('prioridade')}>
                     Prioridade {getSortIcon('prioridade')}

@@ -421,7 +421,7 @@ export default function AuthView() {
       {/* Footer Branding */}
       <footer className="w-full py-4 text-center text-xs text-[#7893A2] border-t border-[#234963]/60 z-10">
         <p>© 2026 Construtora e Incorporadora Maximo Aldana. Todos os direitos reservados.</p>
-        <p className="text-[10px] text-[#5E7A8A] mt-0.5">Segurança & Autenticação Integrada</p>
+        <p className="text-[10px] text-[#5E7A8A] mt-0.5">Ambiente Seguro Corporativo</p>
       </footer>
     </div>
   );

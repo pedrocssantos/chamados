@@ -86,7 +86,7 @@ export default function DashboardView() {
 
         <div className="space-y-1">
           <h2 className="text-2xl sm:text-3xl font-extrabold text-[#F1F7F8] tracking-tight">
-            Gestão Integrada de Suporte de TI & Infraestrutura
+            Gestão Integrada de Suporte de TI e Infraestrutura
           </h2>
           <p className="text-xs sm:text-sm text-[#9EB5C1] max-w-2xl leading-relaxed">
             Rastreabilidade completa de computadores de engenharia, roteadores Starlink de canteiro, impressoras e chamados de suporte técnico.
@@ -182,7 +182,7 @@ export default function DashboardView() {
             <p className="text-3xl font-black text-[#E16666]">{criticos}</p>
             <p className="text-xs text-[#E16666]/80 font-bold">Urgência crítica</p>
           </div>
-          <div className="w-12 h-12 rounded-[10px] bg-[#E16666]/15 border border-[#E16666]/30 text-[#E16666] flex items-center justify-center shrink-0 animate-pulse">
+          <div className="w-12 h-12 rounded-[10px] bg-[#E16666]/15 border border-[#E16666]/30 text-[#E16666] flex items-center justify-center shrink-0">
             <AlertTriangle className="w-6 h-6" />
           </div>
         </div>
@@ -219,7 +219,7 @@ export default function DashboardView() {
             </div>
             <div>
               <h4 className="text-sm font-extrabold text-[#F1F7F8] group-hover:text-[#66C1BF] transition-colors">
-                Categorias & SLA
+                Categorias e SLA
               </h4>
               <p className="text-[11px] text-[#9EB5C1]">Regras de prazos por severidade.</p>
             </div>
@@ -237,7 +237,7 @@ export default function DashboardView() {
             </div>
             <div>
               <h4 className="text-sm font-extrabold text-[#F1F7F8] group-hover:text-[#66C1BF] transition-colors">
-                Locais & Obras
+                Obras e Canteiros
               </h4>
               <p className="text-[11px] text-[#9EB5C1]">Status de infraestrutura nos canteiros.</p>
             </div>

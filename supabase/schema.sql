@@ -123,16 +123,16 @@ INSERT INTO public.obras (id, nome, cidade, engenheiro, progresso, status) VALUE
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.categorias (id, nome, sla_horas, cor, descricao) VALUES
-('cat-1', 'Redes & Conectividade (Starlink / 4G)', 4, '#66C1BF', 'Queda de link, antena desalinhada, instabilidade no Wi-Fi do contêiner.'),
-('cat-2', 'Hardware & Computadores de Engenharia', 12, '#4FA9A7', 'Notebooks Lenovo ThinkPad, travamentos de AutoCAD/Revit, troca de periféricos.'),
-('cat-3', 'Impressoras de Plotter & Canteiro', 8, '#E2B552', 'Plotters HP DesignJet para plantas de engenharia, impressoras Brother de canteiro.'),
+('cat-1', 'Redes e Conectividade (Starlink / 4G)', 4, '#66C1BF', 'Queda de link, antena desalinhada, instabilidade no Wi-Fi do contêiner.'),
+('cat-2', 'Hardware e Computadores de Engenharia', 12, '#4FA9A7', 'Notebooks Lenovo ThinkPad, travamentos de AutoCAD/Revit, troca de periféricos.'),
+('cat-3', 'Impressoras de Plotter e Canteiro', 8, '#E2B552', 'Plotters HP DesignJet para plantas de engenharia, impressoras Brother de canteiro.'),
 ('cat-4', 'Sistemas ERP (Sienge / Office 365)', 6, '#8E7CF8', 'Acessos e senhas do ERP Sienge, contas @maximoaldana.com.br, Teams e SharePoint.'),
-('cat-5', 'Controle de Acesso & CFTV de Canteiro', 6, '#E16666', 'Catracas biométricas de operários, câmeras Hikvision de monitoramento da obra.')
+('cat-5', 'Controle de Acesso e CFTV de Canteiro', 6, '#E16666', 'Catracas biométricas de operários, câmeras Hikvision de monitoramento da obra.')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.tecnicos (id, nome, email, especialidade) VALUES
-('tec-1', 'Pedro Henrique Santos', 'pedro.santos@maximoaldana.com.br', 'Infraestrutura & Redes de Obra'),
-('tec-2', 'Lucas Nogueira', 'lucas.ti@maximoaldana.com.br', 'Suporte a Sistemas & Sienge ERP'),
-('tec-3', 'Rafael Mendes', 'rafael.ti@maximoaldana.com.br', 'Hardware & Plotters de Engenharia'),
-('tec-4', 'Diego Silveira', 'diego.ti@maximoaldana.com.br', 'Controle de Acesso & CFTV')
+('tec-1', 'Pedro Henrique Santos', 'pedro.santos@maximoaldana.com.br', 'Infraestrutura e Redes de Obra'),
+('tec-2', 'Lucas Nogueira', 'lucas.ti@maximoaldana.com.br', 'Suporte a Sistemas e Sienge ERP'),
+('tec-3', 'Rafael Mendes', 'rafael.ti@maximoaldana.com.br', 'Hardware e Plotters de Engenharia'),
+('tec-4', 'Diego Silveira', 'diego.ti@maximoaldana.com.br', 'Controle de Acesso e CFTV')
 ON CONFLICT (id) DO NOTHING;

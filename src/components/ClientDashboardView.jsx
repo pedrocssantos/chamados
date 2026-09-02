@@ -188,7 +188,7 @@ export default function ClientDashboardView() {
             <Headphones className="w-5 h-5" />
           </div>
           <div>
-            <p className="font-bold text-[#F1F7F8]">Equipe Central de Suporte & TI Maximo Aldana</p>
+            <p className="font-bold text-[#F1F7F8]">Equipe de Suporte e TI Maximo Aldana</p>
             <p className="text-[#9EB5C1]">Horário de atendimento: Segunda a Sexta das 07:00 às 17:00</p>
           </div>
         </div>

@@ -14,7 +14,7 @@ export default function CategoriasView() {
             <Layers className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-xl font-extrabold text-[#F1F7F8]">Categorias de Atendimento & Regras de SLA</h2>
+            <h2 className="text-xl font-extrabold text-[#F1F7F8]">Categorias de Atendimento e Prazos SLA</h2>
             <p className="text-xs text-[#9EB5C1]">
               Prazos de atendimento regulamentados por categoria e severidade para os canteiros de obra.
             </p>

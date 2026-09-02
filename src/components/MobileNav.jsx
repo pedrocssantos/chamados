@@ -33,14 +33,14 @@ export default function MobileNav() {
                 className="flex items-center gap-2.5 p-3 rounded-[8px] bg-[#14334C] border border-[#234963] text-left text-xs font-semibold text-[#F1F7F8]"
               >
                 <Layers className="w-4 h-4 text-[#66C1BF]" />
-                <span>Categorias & SLA</span>
+                <span>Categorias e SLA</span>
               </button>
               <button
                 onClick={() => { setActiveTab('relatorios'); setIsMenuOpen(false); }}
                 className="flex items-center gap-2.5 p-3 rounded-[8px] bg-[#14334C] border border-[#234963] text-left text-xs font-semibold text-[#F1F7F8]"
               >
                 <BarChart3 className="w-4 h-4 text-[#66C1BF]" />
-                <span>Relatórios & SLA</span>
+                <span>Relatórios de Atendimento</span>
               </button>
               <button
                 onClick={() => { setIsNewTicketOpen(true); setIsMenuOpen(false); }}
