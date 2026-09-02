@@ -7,29 +7,38 @@ import {
   Printer, 
   Calendar, 
   MapPin, 
-  CheckCircle2
+  CheckCircle2,
+  Headphones,
+  HardHat
 } from 'lucide-react';
 import { useTickets } from '../context/TicketContext';
 
 export default function TicketDetailModal() {
-  const { selectedTicket, setSelectedTicket, updateTicketStatus, tecnicos } = useTickets();
+  const { selectedTicket, setSelectedTicket, updateTicketStatus, tecnicos, user } = useTickets();
   const [newComment, setNewComment] = useState('');
   const [statusSelect, setStatusSelect] = useState(selectedTicket?.status || 'Aberto');
-  const [tecnicoSelect, setTecnicoSelect] = useState(selectedTicket?.tecnicoAtribuido || 'Pendente');
+  const [tecnicoSelect, setTecnicoSelect] = useState(selectedTicket?.tecnicoAtribuido || 'Pendente de Atribuição');
 
   if (!selectedTicket) return null;
 
+  const isClient = user?.role === 'cliente';
+
   const handleUpdate = (e) => {
     e.preventDefault();
-    if (!statusSelect && !newComment) return;
+    if (!newComment && isClient) return;
     
-    updateTicketStatus(selectedTicket.id, statusSelect, tecnicoSelect, newComment);
+    updateTicketStatus(
+      selectedTicket.id, 
+      isClient ? selectedTicket.status : statusSelect, 
+      isClient ? selectedTicket.tecnicoAtribuido : tecnicoSelect, 
+      newComment
+    );
     setNewComment('');
   };
 
   const getPriorityBadge = (prioridade) => {
     if (prioridade === 'Crítica') {
-      return <span className="px-2.5 py-1 rounded-[4px] text-[11px] font-extrabold bg-[#E16666] text-[#0B1D2D] animate-pulse">URGÊNCIA CRÍTICA</span>;
+      return <span className="px-2.5 py-1 rounded-[4px] text-[11px] font-extrabold bg-[#E16666] text-[#0B1D2D]">URGÊNCIA CRÍTICA</span>;
     }
     if (prioridade === 'Alta') {
       return <span className="px-2.5 py-1 rounded-[4px] text-[11px] font-bold bg-[#E16666]/20 text-[#E16666]">PRIORIDADE ALTA</span>;
@@ -97,6 +106,9 @@ export default function TicketDetailModal() {
                 <span className="px-2.5 py-1 rounded-[4px] text-[11px] font-extrabold bg-[#66C1BF]/15 text-[#66C1BF] border border-[#66C1BF]/30">
                   {selectedTicket.categoriaNome}
                 </span>
+                <span className="px-2.5 py-1 rounded-[4px] text-[11px] font-bold bg-[#14334C] text-[#F1F7F8] border border-[#234963]">
+                  Status: {selectedTicket.status}
+                </span>
               </div>
 
               {/* Description */}
@@ -141,51 +153,76 @@ export default function TicketDetailModal() {
               </div>
             </div>
 
-            {/* Right side Management Panel (1 col) */}
+            {/* Right side Panel (Admin Controls or Client Tracker) */}
             <div className="bg-[#081724] border border-[#234963] p-4 rounded-[8px] space-y-4">
               <h4 className="text-xs font-extrabold uppercase text-[#66C1BF] tracking-wider pb-2 border-b border-[#234963]">
-                Painel de Atendimento TI
+                {isClient ? 'Status do Atendimento' : 'Painel de Atendimento TI'}
               </h4>
 
-              {/* Status Manager */}
-              <div className="space-y-1.5">
-                <label className="text-xs text-[#9EB5C1] font-semibold block">Status Atual</label>
-                <select
-                  value={statusSelect}
-                  onChange={(e) => setStatusSelect(e.target.value)}
-                  className="w-full px-3 py-2 rounded-[6px] bg-[#14334C] border border-[#234963] focus:border-[#66C1BF] text-xs font-bold text-[#F1F7F8] focus:outline-none"
-                >
-                  <option value="Aberto">Aberto</option>
-                  <option value="Em Atendimento">Em Atendimento</option>
-                  <option value="Aguardando Peça">Aguardando Peça</option>
-                  <option value="Concluído">Concluído</option>
-                </select>
-              </div>
+              {isClient ? (
+                /* Client Read-Only Status Card */
+                <div className="space-y-3">
+                  <div className="p-3 bg-[#14334C]/60 rounded-[8px] border border-[#234963] space-y-2">
+                    <span className="text-[10.5px] font-bold text-[#7893A2] uppercase block">Status do seu chamado</span>
+                    <span className="inline-block px-3 py-1 rounded text-xs font-black bg-[#66C1BF] text-[#08252B]">
+                      {selectedTicket.status}
+                    </span>
+                  </div>
 
-              {/* Technician Assigner */}
-              <div className="space-y-1.5">
-                <label className="text-xs text-[#9EB5C1] font-semibold block">Técnico Responsável</label>
-                <select
-                  value={tecnicoSelect}
-                  onChange={(e) => setTecnicoSelect(e.target.value)}
-                  className="w-full px-3 py-2 rounded-[6px] bg-[#14334C] border border-[#234963] focus:border-[#66C1BF] text-xs font-bold text-[#F1F7F8] focus:outline-none"
-                >
-                  <option value="Pendente de Atribuição">Pendente de Atribuição</option>
-                  {tecnicos.map(t => (
-                    <option key={t.id} value={t.nome}>{t.nome} ({t.especialidade})</option>
-                  ))}
-                </select>
-              </div>
+                  <div className="p-3 bg-[#14334C]/60 rounded-[8px] border border-[#234963] space-y-1">
+                    <span className="text-[10.5px] font-bold text-[#7893A2] uppercase block">Técnico Responsável</span>
+                    <p className="text-xs font-bold text-[#F1F7F8] flex items-center gap-1.5">
+                      <Headphones className="w-3.5 h-3.5 text-[#66C1BF]" />
+                      <span>{selectedTicket.tecnicoAtribuido}</span>
+                    </p>
+                  </div>
 
-              <div className="pt-2">
-                <button
-                  onClick={handleUpdate}
-                  className="w-full py-2.5 bg-[#66C1BF] hover:bg-[#4FA9A7] text-[#08252B] font-extrabold rounded-[6px] text-xs transition-colors flex items-center justify-center gap-1.5 shadow-sm"
-                >
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Salvar Alterações</span>
-                </button>
-              </div>
+                  <div className="p-2.5 bg-[#66C1BF]/10 rounded-[6px] border border-[#66C1BF]/20 text-[11px] text-[#9EB5C1]">
+                    💡 Use o campo abaixo para enviar mensagens ou dúvidas diretamente à equipe técnica.
+                  </div>
+                </div>
+              ) : (
+                /* Admin Management Panel */
+                <>
+                  <div className="space-y-1.5">
+                    <label className="text-xs text-[#9EB5C1] font-semibold block">Status Atual</label>
+                    <select
+                      value={statusSelect}
+                      onChange={(e) => setStatusSelect(e.target.value)}
+                      className="w-full px-3 py-2 rounded-[6px] bg-[#14334C] border border-[#234963] focus:border-[#66C1BF] text-xs font-bold text-[#F1F7F8] focus:outline-none"
+                    >
+                      <option value="Aberto">Aberto</option>
+                      <option value="Em Atendimento">Em Atendimento</option>
+                      <option value="Aguardando Peça">Aguardando Peça</option>
+                      <option value="Concluído">Concluído</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs text-[#9EB5C1] font-semibold block">Técnico Responsável</label>
+                    <select
+                      value={tecnicoSelect}
+                      onChange={(e) => setTecnicoSelect(e.target.value)}
+                      className="w-full px-3 py-2 rounded-[6px] bg-[#14334C] border border-[#234963] focus:border-[#66C1BF] text-xs font-bold text-[#F1F7F8] focus:outline-none"
+                    >
+                      <option value="Pendente de Atribuição">Pendente de Atribuição</option>
+                      {tecnicos.map(t => (
+                        <option key={t.id} value={t.nome}>{t.nome} ({t.especialidade})</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="pt-2">
+                    <button
+                      onClick={handleUpdate}
+                      className="w-full py-2.5 bg-[#66C1BF] hover:bg-[#4FA9A7] text-[#08252B] font-extrabold rounded-[6px] text-xs transition-colors flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+                    >
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>Salvar Alterações</span>
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -219,12 +256,12 @@ export default function TicketDetailModal() {
                 type="text"
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
-                placeholder="Adicionar observação técnica ou nota de andamento..."
+                placeholder={isClient ? "Adicionar observação para a equipe de TI..." : "Adicionar observação técnica ou nota de andamento..."}
                 className="flex-1 px-3 py-2 rounded-[6px] bg-[#081724] border border-[#234963] focus:border-[#66C1BF] text-xs text-[#F1F7F8] placeholder-[#7893A2] focus:outline-none"
               />
               <button
                 type="submit"
-                className="px-4 py-2 bg-[#14334C] hover:bg-[#66C1BF] text-[#66C1BF] hover:text-[#08252B] border border-[#234963] hover:border-[#66C1BF] rounded-[6px] text-xs font-bold transition-all flex items-center gap-1.5 shrink-0"
+                className="px-4 py-2 bg-[#14334C] hover:bg-[#66C1BF] text-[#66C1BF] hover:text-[#08252B] border border-[#234963] hover:border-[#66C1BF] rounded-[6px] text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer"
               >
                 <Send className="w-3.5 h-3.5" />
                 <span>Enviar</span>

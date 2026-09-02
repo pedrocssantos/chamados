@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { MOCK_CHAMADOS, MOCK_OBRAS, MOCK_CATEGORIAS, MOCK_TECNICOS } from '../data/mockData';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { sendEmailNotification } from '../services/emailService';
@@ -69,6 +69,8 @@ const mapDbChamadoToFront = (row) => ({
   prioridade: row.prioridade,
   status: row.status,
   solicitante: row.solicitante,
+  solicitanteId: row.solicitante_id,
+  solicitanteEmail: row.solicitante_email,
   tecnicoAtribuido: row.tecnico_atribuido,
   anexo: row.anexo_base64,
   anexoNome: row.anexo_nome,
@@ -90,6 +92,8 @@ const mapFrontChamadoToDb = (item) => ({
   prioridade: item.prioridade,
   status: item.status,
   solicitante: item.solicitante,
+  solicitante_id: item.solicitanteId || null,
+  solicitante_email: item.solicitanteEmail || null,
   tecnico_atribuido: item.tecnicoAtribuido,
   anexo_base64: item.anexo || null,
   anexo_nome: item.anexoNome || null,
@@ -126,7 +130,7 @@ export const TicketProvider = ({ children }) => {
     }
   });
 
-  const [chamados, setChamados] = useState(() => {
+  const [rawChamados, setRawChamados] = useState(() => {
     try {
       const saved = localStorage.getItem('maximo_chamados_ti');
       return saved ? JSON.parse(saved) : MOCK_CHAMADOS;
@@ -144,6 +148,24 @@ export const TicketProvider = ({ children }) => {
   const [scannedQrCode, setScannedQrCode] = useState(null);
 
   const [ticketFilters, setTicketFiltersState] = useState({ status: null, prioridade: null, obraId: null, categoriaId: null });
+
+  // STRICT VISIBILITY FILTERING:
+  // Suporte/TI: vê todos os chamados da empresa
+  // Cliente: vê ESTRITAMENTE E SOMENTE os chamados criados por ele
+  const visibleChamados = useMemo(() => {
+    if (!currentUser) return [];
+    if (currentUser.role === 'suporte') {
+      return rawChamados;
+    }
+
+    // Cliente: filtra apenas por ID do solicitante, e-mail do solicitante ou nome do usuário
+    return rawChamados.filter(t => {
+      if (t.solicitanteId && t.solicitanteId === currentUser.id) return true;
+      if (t.solicitanteEmail && t.solicitanteEmail.toLowerCase() === currentUser.email.toLowerCase()) return true;
+      if (t.solicitante && t.solicitante.toLowerCase().includes(currentUser.nome.toLowerCase())) return true;
+      return false;
+    });
+  }, [rawChamados, currentUser]);
 
   const setTicketFilters = (filters) => {
     setTicketFiltersState(prev => ({ ...prev, ...filters }));
@@ -164,8 +186,8 @@ export const TicketProvider = ({ children }) => {
   }, [currentUser]);
 
   useEffect(() => {
-    localStorage.setItem('maximo_chamados_ti', JSON.stringify(chamados));
-  }, [chamados]);
+    localStorage.setItem('maximo_chamados_ti', JSON.stringify(rawChamados));
+  }, [rawChamados]);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -190,7 +212,7 @@ export const TicketProvider = ({ children }) => {
 
         if (isMounted) {
           if (chamadosRes.data && chamadosRes.data.length > 0) {
-            setChamados(chamadosRes.data.map(mapDbChamadoToFront));
+            setRawChamados(chamadosRes.data.map(mapDbChamadoToFront));
           }
           if (obrasRes.data && obrasRes.data.length > 0) {
             setObras(obrasRes.data);
@@ -217,13 +239,13 @@ export const TicketProvider = ({ children }) => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'chamados' }, (payload) => {
         if (payload.eventType === 'INSERT') {
           const newFront = mapDbChamadoToFront(payload.new);
-          setChamados(prev => [newFront, ...prev.filter(t => t.id !== newFront.id)]);
+          setRawChamados(prev => [newFront, ...prev.filter(t => t.id !== newFront.id)]);
         } else if (payload.eventType === 'UPDATE') {
           const updatedFront = mapDbChamadoToFront(payload.new);
-          setChamados(prev => prev.map(t => t.id === updatedFront.id ? updatedFront : t));
+          setRawChamados(prev => prev.map(t => t.id === updatedFront.id ? updatedFront : t));
           setSelectedTicket(prev => prev && prev.id === updatedFront.id ? updatedFront : prev);
         } else if (payload.eventType === 'DELETE') {
-          setChamados(prev => prev.filter(t => t.id !== payload.old.id));
+          setRawChamados(prev => prev.filter(t => t.id !== payload.old.id));
           setSelectedTicket(prev => prev && prev.id === payload.old.id ? null : prev);
         }
       })
@@ -296,7 +318,7 @@ export const TicketProvider = ({ children }) => {
   };
 
   const createTicket = async (ticketData) => {
-    const maxSeq = chamados.reduce((max, t) => {
+    const maxSeq = rawChamados.reduce((max, t) => {
       const parts = (t.id || '').split('-');
       const seq = parseInt(parts[parts.length - 1], 10);
       return !isNaN(seq) && seq > max ? seq : max;
@@ -311,7 +333,7 @@ export const TicketProvider = ({ children }) => {
 
     const obraObj = obras.find(o => o.id === ticketData.obraId) || obras[0];
 
-    const requesterName = ticketData.solicitante || `${currentUser?.nome || 'Colaborador'} (${currentUser?.cargo || 'Obra'})`;
+    const requesterName = currentUser ? `${currentUser.nome} (${currentUser.cargo})` : (ticketData.solicitante || 'Colaborador');
 
     const newTicket = {
       id: newId,
@@ -325,6 +347,8 @@ export const TicketProvider = ({ children }) => {
       prioridade: ticketData.prioridade || 'Média',
       status: 'Aberto',
       solicitante: requesterName,
+      solicitanteId: currentUser?.id || null,
+      solicitanteEmail: currentUser?.email || null,
       tecnicoAtribuido: 'Pendente de Atribuição',
       anexo: ticketData.anexo || null,
       anexoNome: ticketData.anexoNome || null,
@@ -340,7 +364,7 @@ export const TicketProvider = ({ children }) => {
     };
 
     // Update local state immediately (optimistic UI)
-    setChamados(prev => [newTicket, ...prev]);
+    setRawChamados(prev => [newTicket, ...prev]);
     setIsNewTicketOpen(false);
     setScannedQrCode(null);
 
@@ -368,7 +392,7 @@ export const TicketProvider = ({ children }) => {
   };
 
   const deleteTicket = async (ticketId) => {
-    setChamados(prev => prev.filter(t => t.id !== ticketId));
+    setRawChamados(prev => prev.filter(t => t.id !== ticketId));
     if (selectedTicket && selectedTicket.id === ticketId) {
       setSelectedTicket(null);
     }
@@ -386,11 +410,11 @@ export const TicketProvider = ({ children }) => {
     const nowStr = brazilNow();
     let updatedObj = null;
 
-    setChamados(prev => prev.map(t => {
+    setRawChamados(prev => prev.map(t => {
       if (t.id === ticketId) {
         const newHist = [...t.historico, {
           data: nowStr,
-          autor: currentUser?.nome || 'Técnico TI',
+          autor: currentUser?.nome || 'Usuário',
           texto: 'Chamado editado (título/descrição/localização/prioridade).'
         }];
         
@@ -434,20 +458,20 @@ export const TicketProvider = ({ children }) => {
     const nowStr = brazilNow();
     let updatedTicket = null;
     
-    setChamados(prev => prev.map(t => {
+    setRawChamados(prev => prev.map(t => {
       if (t.id === ticketId) {
         const newHist = [...t.historico];
         if (comentario) {
           newHist.push({
             data: nowStr,
-            autor: currentUser?.nome || 'Técnico TI',
+            autor: currentUser?.nome || 'Usuário',
             texto: comentario
           });
         }
         if (newStatus && newStatus !== t.status) {
           newHist.push({
             data: nowStr,
-            autor: currentUser?.nome || 'Técnico TI',
+            autor: currentUser?.nome || 'Usuário',
             texto: `Status alterado de "${t.status}" para "${newStatus}".`
           });
         }
@@ -497,7 +521,8 @@ export const TicketProvider = ({ children }) => {
         toggleTheme,
         activeTab,
         setActiveTab,
-        chamados,
+        chamados: visibleChamados, // Automatic and strict role-based filtered list
+        allChamados: rawChamados,
         obras,
         categorias,
         tecnicos,

@@ -43,7 +43,8 @@ export default function TicketsView() {
     ticketFilters,
     setTicketFilters,
     deleteTicket,
-    updateTicketStatus
+    updateTicketStatus,
+    user
   } = useTickets();
 
   // Local Filters
@@ -286,10 +287,14 @@ export default function TicketsView() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <LifeBuoy className="w-4 h-4 text-[#66C1BF]" />
-            <h2 className="text-xl font-extrabold text-[#F1F7F8]">Central de Chamados Técnicos</h2>
+            <h2 className="text-xl font-extrabold text-[#F1F7F8]">
+              {user?.role === 'cliente' ? 'Meus Chamados Criados' : 'Central de Chamados Técnicos'}
+            </h2>
           </div>
           <p className="text-xs text-[#9EB5C1]">
-            Gerencie, filtre e acompanhe a resolução dos chamados de todas as obras ativas da Maximo Aldana.
+            {user?.role === 'cliente' 
+              ? `Acompanhe o status das solicitações de TI abertas por você (${user.nome}).`
+              : 'Gerencie, filtre e acompanhe a resolução dos chamados de todas as obras ativas da Maximo Aldana.'}
           </p>
         </div>
 
