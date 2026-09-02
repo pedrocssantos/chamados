@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   X, 
   PlusCircle, 
@@ -22,16 +22,32 @@ export default function NewTicketModal() {
     user 
   } = useTickets();
 
-  const [obraId, setObraId] = useState(obras[0]?.id || '');
-  const [categoriaId, setCategoriaId] = useState(categorias[0]?.id || '');
+  const [obraId, setObraId] = useState('');
+  const [categoriaId, setCategoriaId] = useState('');
   const [prioridade, setPrioridade] = useState('Média');
   const [titulo, setTitulo] = useState('');
   const [localizacao, setLocalizacao] = useState('');
   const [descricao, setDescricao] = useState('');
-  const [solicitante, setSolicitante] = useState(`${user.nome} (${user.cargo})`);
+  const [solicitante, setSolicitante] = useState('');
   const [fileName, setFileName] = useState('');
   const [anexoBase64, setAnexoBase64] = useState('');
   const [formError, setFormError] = useState('');
+
+  // Sync state whenever modal opens or user loads
+  useEffect(() => {
+    if (isNewTicketOpen) {
+      setObraId(user?.obraId || obras?.[0]?.id || '');
+      setCategoriaId(categorias?.[0]?.id || '');
+      setPrioridade('Média');
+      setTitulo('');
+      setLocalizacao('');
+      setDescricao('');
+      setSolicitante(user ? `${user.nome || 'Colaborador'} (${user.cargo || 'Geral'})` : 'Colaborador Maximo Aldana');
+      setFileName('');
+      setAnexoBase64('');
+      setFormError('');
+    }
+  }, [isNewTicketOpen, user, obras, categorias]);
 
   if (!isNewTicketOpen) return null;
 
@@ -61,39 +77,41 @@ export default function NewTicketModal() {
 
     createTicket({
       titulo,
-      obraId,
-      categoriaId,
-      prioridade,
-      localizacao,
       descricao,
-      solicitante,
-      anexo: anexoBase64
+      localizacao,
+      obraId: obraId || obras?.[0]?.id,
+      categoriaId: categoriaId || categorias?.[0]?.id,
+      prioridade,
+      solicitante: solicitante || (user ? `${user.nome} (${user.cargo})` : 'Colaborador'),
+      anexo: anexoBase64,
+      anexoNome: fileName
     });
+
+    setIsNewTicketOpen(false);
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-[#0B1D2D]/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
-      <div className="bg-[#102A40] border border-[#66C1BF]/40 rounded-[12px] max-w-2xl w-full max-h-[92vh] flex flex-col shadow-[0_25px_60px_rgba(0,0,0,0.45)] animate-page-enter overflow-hidden">
+    <div className="fixed inset-0 z-[9999] bg-[#0B1D2D]/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+      <div className="bg-[#102A40] border border-[#66C1BF]/40 rounded-[12px] max-w-2xl w-full max-h-[92vh] flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.4)] animate-page-enter overflow-hidden">
         
         {/* Modal Header */}
         <div className="bg-[#081724] px-5 py-4 border-b border-[#234963] flex items-center justify-between gap-4 shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="bg-[#66C1BF] text-[#08252B] p-2 rounded shadow-sm">
+          <div className="flex items-center gap-2.5">
+            <div className="p-1.5 rounded-[6px] bg-[#66C1BF] text-[#08252B]">
               <PlusCircle className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-extrabold text-[#F1F7F8]">
-                Abertura de Novo Chamado de TI
-              </h3>
+              <h3 className="text-base font-extrabold text-[#F1F7F8]">Abertura de Chamado de TI</h3>
               <p className="text-xs text-[#9EB5C1]">
-                Registro oficial para problemas de redes, computadores, sistemas e impressoras.
+                {user?.role === 'cliente' 
+                  ? `Solicitação direta para ${user.obraNome || 'sua obra'}`
+                  : 'Registre um chamado técnico para suporte e infraestrutura'}
               </p>
             </div>
           </div>
-
           <button
             onClick={() => setIsNewTicketOpen(false)}
-            className="p-1.5 rounded-[6px] text-[#7893A2] hover:text-[#F1F7F8] hover:bg-[#14334C] transition-colors"
+            className="p-1 rounded-[6px] text-[#7893A2] hover:text-[#F1F7F8] hover:bg-[#14334C] transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -101,173 +119,167 @@ export default function NewTicketModal() {
 
         {/* Modal Form */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 space-y-4">
+          
+          {formError && (
+            <div className="p-3 bg-[#E16666]/15 border border-[#E16666]/40 rounded-[6px] text-xs font-bold text-[#E16666] flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 shrink-0" />
+              <span>{formError}</span>
+            </div>
+          )}
 
-          {/* Obra & Categoria row */}
+          {/* Obra e Categoria row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-xs text-[#9EB5C1] font-semibold flex items-center gap-1">
-                <Building className="w-3.5 h-3.5 text-[#66C1BF]" /> Obra / Local de TI *
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-[#9EB5C1] flex items-center gap-1.5">
+                <Building className="w-3.5 h-3.5 text-[#66C1BF]" />
+                <span>Obra / Unidade *</span>
               </label>
               <select
                 value={obraId}
                 onChange={(e) => setObraId(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-[6px] bg-[#081724] border border-[#234963] focus:border-[#66C1BF] text-xs text-[#F1F7F8] focus:outline-none"
+                required
+                className="w-full px-3 py-2 rounded-[6px] bg-[#081724] border border-[#234963] focus:border-[#66C1BF] text-xs font-bold text-[#F1F7F8] outline-none"
               >
-                {obras.map(o => (
+                {(obras || []).map(o => (
                   <option key={o.id} value={o.id}>{o.nome} ({o.cidade})</option>
                 ))}
               </select>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-xs text-[#9EB5C1] font-semibold flex items-center gap-1">
-                <Layers className="w-3.5 h-3.5 text-[#66C1BF]" /> Categoria de TI *
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-[#9EB5C1] flex items-center gap-1.5">
+                <Layers className="w-3.5 h-3.5 text-[#66C1BF]" />
+                <span>Categoria do Problema *</span>
               </label>
               <select
                 value={categoriaId}
                 onChange={(e) => setCategoriaId(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-[6px] bg-[#081724] border border-[#234963] focus:border-[#66C1BF] text-xs text-[#F1F7F8] focus:outline-none"
+                required
+                className="w-full px-3 py-2 rounded-[6px] bg-[#081724] border border-[#234963] focus:border-[#66C1BF] text-xs font-bold text-[#F1F7F8] outline-none"
               >
-                {categorias.map(c => (
-                  <option key={c.id} value={c.id}>{c.nome}</option>
+                {(categorias || []).map(c => (
+                  <option key={c.id} value={c.id}>{c.nome} (SLA: {c.slaHoras || c.sla_horas}h)</option>
                 ))}
               </select>
             </div>
           </div>
 
-          {/* Title & Priority */}
+          {/* Title and Priority */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="sm:col-span-2 space-y-1">
-              <label className="text-xs text-[#9EB5C1] font-semibold flex items-center gap-1">
-                <FileText className="w-3.5 h-3.5 text-[#66C1BF]" /> Título do Chamado *
+            <div className="sm:col-span-2 space-y-1.5">
+              <label className="text-xs font-bold text-[#9EB5C1] flex items-center gap-1.5">
+                <FileText className="w-3.5 h-3.5 text-[#66C1BF]" />
+                <span>Título Resumido da Ocorrência *</span>
               </label>
               <input
                 type="text"
-                required
                 value={titulo}
-                onChange={(e) => {
-                  setTitulo(e.target.value);
-                  if (formError && e.target.value) setFormError('');
-                }}
-                placeholder="Ex: Queda da internet Starlink no contêiner / Reset de Senha Sienge"
-                className={`w-full px-3 py-2.5 rounded-[6px] bg-[#081724] border ${formError && !titulo ? 'border-[#E16666]' : 'border-[#234963]'} focus:border-[#66C1BF] text-xs text-[#F1F7F8] placeholder-[#7893A2] focus:outline-none`}
+                onChange={(e) => setTitulo(e.target.value)}
+                placeholder="Ex: Wi-Fi do contêiner instável / Troca de toner"
+                required
+                className="w-full px-3 py-2 rounded-[6px] bg-[#081724] border border-[#234963] focus:border-[#66C1BF] text-xs font-bold text-[#F1F7F8] outline-none"
               />
-              {formError && !titulo && <p className="text-[10px] text-[#E16666] font-bold">Título é obrigatório</p>}
             </div>
 
-            <div className="space-y-1">
-              <label className="text-xs text-[#9EB5C1] font-semibold flex items-center gap-1">
-                <AlertTriangle className="w-3.5 h-3.5 text-[#E2B552]" /> Urgência / Prioridade
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-[#9EB5C1] flex items-center gap-1.5">
+                <AlertTriangle className="w-3.5 h-3.5 text-[#E2B552]" />
+                <span>Prioridade *</span>
               </label>
               <select
                 value={prioridade}
                 onChange={(e) => setPrioridade(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-[6px] bg-[#081724] border border-[#234963] focus:border-[#66C1BF] text-xs font-bold text-[#F1F7F8] focus:outline-none"
+                className="w-full px-3 py-2 rounded-[6px] bg-[#081724] border border-[#234963] focus:border-[#66C1BF] text-xs font-bold text-[#F1F7F8] outline-none"
               >
-                <option value="Baixa">Baixa</option>
-                <option value="Média">Média (Padrão)</option>
-                <option value="Alta">Alta</option>
-                <option value="Crítica">Crítica (Rede/Link Offline)</option>
+                <option value="Baixa">Baixa (Dúvida/Melhoria)</option>
+                <option value="Média">Média (Impacto Parcial)</option>
+                <option value="Alta">Alta (Impacto Operacional)</option>
+                <option value="Crítica">Crítica (Canteiro Parado)</option>
               </select>
             </div>
           </div>
 
-          {/* Exact Location & Requester */}
+          {/* Exact Location and Requester */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-xs text-[#9EB5C1] font-semibold flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5 text-[#66C1BF]" /> Localização Exata *
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-[#9EB5C1] flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 text-[#66C1BF]" />
+                <span>Localização Exata na Obra *</span>
               </label>
               <input
                 type="text"
-                required
                 value={localizacao}
-                onChange={(e) => {
-                  setLocalizacao(e.target.value);
-                  if (formError && e.target.value) setFormError('');
-                }}
-                placeholder="Ex: Contêiner de Engenharia / 2º Andar Sede"
-                className={`w-full px-3 py-2.5 rounded-[6px] bg-[#081724] border ${formError && !localizacao ? 'border-[#E16666]' : 'border-[#234963]'} focus:border-[#66C1BF] text-xs text-[#F1F7F8] placeholder-[#7893A2] focus:outline-none`}
+                onChange={(e) => setLocalizacao(e.target.value)}
+                placeholder="Ex: Contêiner 02 - Sala dos Engenheiros"
+                required
+                className="w-full px-3 py-2 rounded-[6px] bg-[#081724] border border-[#234963] focus:border-[#66C1BF] text-xs font-bold text-[#F1F7F8] outline-none"
               />
-              {formError && !localizacao && <p className="text-[10px] text-[#E16666] font-bold">Localização é obrigatória</p>}
             </div>
 
-            <div className="space-y-1">
-              <label className="text-xs text-[#9EB5C1] font-semibold flex items-center gap-1">
-                Solicitante / Contato
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-[#9EB5C1] flex items-center gap-1.5">
+                <span>Nome do Solicitante</span>
               </label>
               <input
                 type="text"
                 value={solicitante}
                 onChange={(e) => setSolicitante(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-[6px] bg-[#081724] border border-[#234963] focus:border-[#66C1BF] text-xs text-[#F1F7F8] focus:outline-none"
+                className="w-full px-3 py-2 rounded-[6px] bg-[#081724] border border-[#234963] focus:border-[#66C1BF] text-xs font-bold text-[#F1F7F8] outline-none"
               />
             </div>
           </div>
 
           {/* Description */}
-          <div className="space-y-1">
-            <label className="text-xs text-[#9EB5C1] font-semibold">
-              Descrição Detalhada da Ocorrência *
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-[#9EB5C1]">
+              Descrição Detalhada do Problema *
             </label>
             <textarea
-              required
               rows={4}
               value={descricao}
-              onChange={(e) => {
-                setDescricao(e.target.value);
-                if (formError && e.target.value) setFormError('');
-              }}
-              placeholder="Descreva o problema encontrado, mensagem de erro ou equipamento afetado..."
-              className={`w-full px-3 py-2.5 rounded-[6px] bg-[#081724] border ${formError && !descricao ? 'border-[#E16666]' : 'border-[#234963]'} focus:border-[#66C1BF] text-xs text-[#F1F7F8] placeholder-[#7893A2] focus:outline-none resize-none`}
+              onChange={(e) => setDescricao(e.target.value)}
+              placeholder="Descreva detalhadamente o ocorrido..."
+              required
+              className="w-full px-3 py-2 rounded-[6px] bg-[#081724] border border-[#234963] focus:border-[#66C1BF] text-xs text-[#F1F7F8] outline-none"
             />
-            {formError && !descricao && <p className="text-[10px] text-[#E16666] font-bold">Descrição é obrigatória</p>}
           </div>
 
-          {/* Image Upload */}
-          <div className="space-y-1">
-            <label className="text-xs text-[#9EB5C1] font-semibold flex items-center gap-1">
-              <Camera className="w-3.5 h-3.5 text-[#66C1BF]" /> Captura / Print de Erro (Opcional)
+          {/* File attachment */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-[#9EB5C1] flex items-center gap-1.5">
+              <Camera className="w-3.5 h-3.5 text-[#66C1BF]" />
+              <span>Anexar Foto ou Comprovante (Opcional)</span>
             </label>
-            <div className="border-2 border-dashed border-[#234963] hover:border-[#66C1BF]/50 rounded-[8px] p-4 text-center bg-[#081724]/60 transition-colors cursor-pointer relative">
-              <input 
-                type="file" 
-                accept="image/*"
-                onChange={handleFileChange}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
-              />
-              <Camera className="w-6 h-6 text-[#7893A2] mx-auto mb-1" />
-              {fileName ? (
-                <p className="text-xs font-bold text-[#66C1BF]">Arquivo selecionado: {fileName}</p>
-              ) : (
-                <p className="text-xs text-[#9EB5C1]">Clique para anexar imagem ou print de erro</p>
-              )}
-            </div>
+            <input
+              type="file"
+              accept="image/*,.pdf"
+              onChange={handleFileChange}
+              className="w-full text-xs text-[#7893A2] file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-bold file:bg-[#14334C] file:text-[#66C1BF] hover:file:bg-[#163A55]"
+            />
+            {fileName && (
+              <p className="text-[11px] text-[#66C1BF]">Arquivo selecionado: {fileName}</p>
+            )}
           </div>
 
-          {/* Footer Submit Buttons */}
-          <div className="pt-3 border-t border-[#234963] flex items-center justify-between gap-3">
-            <div className="text-[#E16666] text-xs font-bold">{formError}</div>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => setIsNewTicketOpen(false)}
-                className="px-4 py-2.5 rounded-[6px] bg-[#14334C] hover:bg-[#163A55] text-[#9EB5C1] hover:text-[#F1F7F8] border border-[#234963] text-xs font-bold transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                className="px-5 py-2.5 rounded-[6px] bg-[#66C1BF] hover:bg-[#4FA9A7] text-[#08252B] font-extrabold text-xs shadow-[0_2px_8px_rgba(102,193,191,0.25)] transition-all hover:-translate-y-0.5 flex items-center gap-1.5"
-              >
-                <CheckCircle2 className="w-4 h-4" />
-                <span>Registrar Chamado</span>
-              </button>
-            </div>
+          {/* Buttons */}
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#234963]">
+            <button
+              type="button"
+              onClick={() => setIsNewTicketOpen(false)}
+              className="px-4 py-2 rounded-[6px] bg-[#14334C] hover:bg-[#163A55] text-[#9EB5C1] hover:text-[#F1F7F8] text-xs font-bold"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="px-5 py-2 rounded-[6px] bg-[#66C1BF] hover:bg-[#4FA9A7] text-[#08252B] font-extrabold text-xs flex items-center gap-1.5 shadow-sm cursor-pointer"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Registrar Chamado</span>
+            </button>
           </div>
 
         </form>
-
       </div>
     </div>
   );
