@@ -30,8 +30,11 @@ class ErrorBoundary extends Component {
   }
 
   handleReset = () => {
-    localStorage.removeItem('maximo_auth_user');
-    localStorage.removeItem('maximo_chamados_ti');
+    try {
+      localStorage.clear();
+    } catch (e) {
+      console.warn('Error clearing localStorage:', e);
+    }
     window.location.reload();
   };
 

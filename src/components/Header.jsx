@@ -6,12 +6,28 @@ export default function Header() {
   const { theme, toggleTheme, setActiveTab, setIsNewTicketOpen, user, chamados, isOnlineDb, logout } = useTickets();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
-  const hasSlaBreach = chamados.some(t => {
-    if (!t.prazoSla || t.status === 'Concluído') return false;
-    const parts = t.prazoSla.split(/[\/\s:]/);
-    if (parts.length >= 5) {
-      const deadline = new Date(parts[2], parts[1] - 1, parts[0], parts[3], parts[4]);
-      return new Date() > deadline;
+  const hasSlaBreach = (chamados || []).some(t => {
+    if (!t || !t.prazoSla || t.status === 'Concluído') return false;
+    try {
+      const parts = t.prazoSla.split(/[\/\s:]/);
+      if (parts && parts.length >= 5) {
+        let yyyy = parseInt(parts[2], 10);
+        let mm = parseInt(parts[1], 10) - 1;
+        let dd = parseInt(parts[0], 10);
+        let hh = parseInt(parts[3], 10);
+        let min = parseInt(parts[4], 10);
+
+        if (parts[0].length === 4) {
+          yyyy = parseInt(parts[0], 10);
+          mm = parseInt(parts[1], 10) - 1;
+          dd = parseInt(parts[2], 10);
+        }
+
+        const deadline = new Date(yyyy, mm, dd, hh, min);
+        return !isNaN(deadline.getTime()) && new Date() > deadline;
+      }
+    } catch (e) {
+      return false;
     }
     return false;
   });

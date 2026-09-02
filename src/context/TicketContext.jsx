@@ -124,7 +124,13 @@ export const TicketProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(() => {
     try {
       const saved = localStorage.getItem('maximo_auth_user');
-      return saved ? JSON.parse(saved) : DEFAULT_USERS[0];
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object' && parsed.id) {
+          return parsed;
+        }
+      }
+      return DEFAULT_USERS[0];
     } catch (e) {
       return DEFAULT_USERS[0];
     }
@@ -133,7 +139,11 @@ export const TicketProvider = ({ children }) => {
   const [rawChamados, setRawChamados] = useState(() => {
     try {
       const saved = localStorage.getItem('maximo_chamados_ti');
-      return saved ? JSON.parse(saved) : MOCK_CHAMADOS;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+      return MOCK_CHAMADOS;
     } catch (e) {
       return MOCK_CHAMADOS;
     }
@@ -142,7 +152,11 @@ export const TicketProvider = ({ children }) => {
   const [obras, setObras] = useState(() => {
     try {
       const saved = localStorage.getItem('maximo_obras_db');
-      return saved ? JSON.parse(saved) : MOCK_OBRAS;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+      return MOCK_OBRAS;
     } catch (e) {
       return MOCK_OBRAS;
     }
@@ -151,7 +165,11 @@ export const TicketProvider = ({ children }) => {
   const [categorias, setCategorias] = useState(() => {
     try {
       const saved = localStorage.getItem('maximo_categorias_db');
-      return saved ? JSON.parse(saved) : MOCK_CATEGORIAS;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+      return MOCK_CATEGORIAS;
     } catch (e) {
       return MOCK_CATEGORIAS;
     }
@@ -169,14 +187,19 @@ export const TicketProvider = ({ children }) => {
   const visibleChamados = useMemo(() => {
     if (!currentUser) return [];
     if (currentUser.role === 'suporte') {
-      return rawChamados;
+      return rawChamados || [];
     }
 
     // Cliente: filtra apenas por ID do solicitante, e-mail do solicitante ou nome do usuário
-    return rawChamados.filter(t => {
-      if (t.solicitanteId && t.solicitanteId === currentUser.id) return true;
-      if (t.solicitanteEmail && t.solicitanteEmail.toLowerCase() === currentUser.email.toLowerCase()) return true;
-      if (t.solicitante && t.solicitante.toLowerCase().includes(currentUser.nome.toLowerCase())) return true;
+    const userEmail = (currentUser?.email || '').toLowerCase().trim();
+    const userName = (currentUser?.nome || '').toLowerCase().trim();
+    const userId = currentUser?.id;
+
+    return (rawChamados || []).filter(t => {
+      if (!t) return false;
+      if (userId && t.solicitanteId && t.solicitanteId === userId) return true;
+      if (userEmail && t.solicitanteEmail && t.solicitanteEmail.toLowerCase().trim() === userEmail) return true;
+      if (userName && t.solicitante && t.solicitante.toLowerCase().includes(userName)) return true;
       return false;
     });
   }, [rawChamados, currentUser]);
