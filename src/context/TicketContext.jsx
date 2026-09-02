@@ -29,7 +29,7 @@ export const brazilDateFromNow = (hoursAdded) => {
   return `${dd}/${mm}/${yyyy} ${hh}:${min}`;
 };
 
-// Initial Seed Users (Suporte TI and Cliente de Obra)
+// Initial Seed Users
 const DEFAULT_USERS = [
   {
     id: 'usr-1',
@@ -40,7 +40,7 @@ const DEFAULT_USERS = [
     telefone: '(11) 98765-4321',
     obraId: 'loc-3',
     obraNome: 'Sede Corporativa Maximo Aldana',
-    role: 'suporte', // 'suporte' (admin) | 'cliente' (solicitante obra)
+    role: 'suporte',
     avatar: 'PS'
   },
   {
@@ -124,7 +124,7 @@ export const TicketProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(() => {
     try {
       const saved = localStorage.getItem('maximo_auth_user');
-      return saved ? JSON.parse(saved) : DEFAULT_USERS[0]; // Default logged in as Pedro
+      return saved ? JSON.parse(saved) : DEFAULT_USERS[0];
     } catch (e) {
       return DEFAULT_USERS[0];
     }
@@ -139,19 +139,33 @@ export const TicketProvider = ({ children }) => {
     }
   });
 
-  const [obras, setObras] = useState(MOCK_OBRAS);
-  const [categorias, setCategorias] = useState(MOCK_CATEGORIAS);
-  const [tecnicos, setTecnicos] = useState(MOCK_TECNICOS);
+  const [obras, setObras] = useState(() => {
+    try {
+      const saved = localStorage.getItem('maximo_obras_db');
+      return saved ? JSON.parse(saved) : MOCK_OBRAS;
+    } catch (e) {
+      return MOCK_OBRAS;
+    }
+  });
 
+  const [categorias, setCategorias] = useState(() => {
+    try {
+      const saved = localStorage.getItem('maximo_categorias_db');
+      return saved ? JSON.parse(saved) : MOCK_CATEGORIAS;
+    } catch (e) {
+      return MOCK_CATEGORIAS;
+    }
+  });
+
+  const [tecnicos, setTecnicos] = useState(MOCK_TECNICOS);
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [isNewTicketOpen, setIsNewTicketOpen] = useState(false);
   const [scannedQrCode, setScannedQrCode] = useState(null);
 
+  // Filter State
   const [ticketFilters, setTicketFiltersState] = useState({ status: null, prioridade: null, obraId: null, categoriaId: null });
 
-  // STRICT VISIBILITY FILTERING:
-  // Suporte/TI: vê todos os chamados da empresa
-  // Cliente: vê ESTRITAMENTE E SOMENTE os chamados criados por ele
+  // STRICT VISIBILITY FILTERING
   const visibleChamados = useMemo(() => {
     if (!currentUser) return [];
     if (currentUser.role === 'suporte') {
@@ -167,12 +181,27 @@ export const TicketProvider = ({ children }) => {
     });
   }, [rawChamados, currentUser]);
 
+  // Robust filter setters
   const setTicketFilters = (filters) => {
-    setTicketFiltersState(prev => ({ ...prev, ...filters }));
+    if (!filters || Object.keys(filters).length === 0) {
+      setTicketFiltersState({ status: null, prioridade: null, obraId: null, categoriaId: null });
+    } else {
+      const cleanFilters = {
+        status: (filters.status && filters.status !== 'TODOS' && filters.status !== 'TODAS') ? filters.status : null,
+        prioridade: (filters.prioridade && filters.prioridade !== 'TODAS' && filters.prioridade !== 'TODOS') ? filters.prioridade : null,
+        obraId: (filters.obraId && filters.obraId !== 'TODAS' && filters.obraId !== 'TODOS') ? filters.obraId : null,
+        categoriaId: (filters.categoriaId && filters.categoriaId !== 'TODAS' && filters.categoriaId !== 'TODOS') ? filters.categoriaId : null,
+      };
+      setTicketFiltersState(cleanFilters);
+    }
     setActiveTab('chamados');
   };
 
-  // Sync users and current auth session
+  const clearTicketFilters = () => {
+    setTicketFiltersState({ status: null, prioridade: null, obraId: null, categoriaId: null });
+  };
+
+  // Sync to local cache
   useEffect(() => {
     localStorage.setItem('maximo_users_db', JSON.stringify(users));
   }, [users]);
@@ -188,6 +217,14 @@ export const TicketProvider = ({ children }) => {
   useEffect(() => {
     localStorage.setItem('maximo_chamados_ti', JSON.stringify(rawChamados));
   }, [rawChamados]);
+
+  useEffect(() => {
+    localStorage.setItem('maximo_obras_db', JSON.stringify(obras));
+  }, [obras]);
+
+  useEffect(() => {
+    localStorage.setItem('maximo_categorias_db', JSON.stringify(categorias));
+  }, [categorias]);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -270,6 +307,7 @@ export const TicketProvider = ({ children }) => {
 
     if (foundUser) {
       setCurrentUser(foundUser);
+      clearTicketFilters();
       setActiveTab('dashboard');
       return { success: true, user: foundUser };
     }
@@ -308,6 +346,7 @@ export const TicketProvider = ({ children }) => {
 
     setUsers(prev => [newUser, ...prev]);
     setCurrentUser(newUser);
+    clearTicketFilters();
     setActiveTab('dashboard');
     return { success: true, user: newUser };
   };
@@ -315,8 +354,10 @@ export const TicketProvider = ({ children }) => {
   const logout = () => {
     setCurrentUser(null);
     setSelectedTicket(null);
+    clearTicketFilters();
   };
 
+  // CRUD FOR CHAMADOS
   const createTicket = async (ticketData) => {
     const maxSeq = rawChamados.reduce((max, t) => {
       const parts = (t.id || '').split('-');
@@ -363,12 +404,10 @@ export const TicketProvider = ({ children }) => {
       ]
     };
 
-    // Update local state immediately (optimistic UI)
     setRawChamados(prev => [newTicket, ...prev]);
     setIsNewTicketOpen(false);
     setScannedQrCode(null);
 
-    // Persist to Supabase if connected
     if (isSupabaseConfigured && supabase) {
       try {
         await supabase.from('chamados').insert([mapFrontChamadoToDb(newTicket)]);
@@ -377,7 +416,6 @@ export const TicketProvider = ({ children }) => {
       }
     }
 
-    // Trigger Resend email notification
     sendEmailNotification({
       type: 'novo_chamado',
       ticket: newTicket,
@@ -415,13 +453,19 @@ export const TicketProvider = ({ children }) => {
         const newHist = [...t.historico, {
           data: nowStr,
           autor: currentUser?.nome || 'Usuário',
-          texto: 'Chamado editado (título/descrição/localização/prioridade).'
+          texto: 'Chamado editado (dados da ocorrência atualizados).'
         }];
         
         let obraNome = t.obraNome;
         if (updates.obraId && updates.obraId !== t.obraId) {
           const obraObj = obras.find(o => o.id === updates.obraId);
           if (obraObj) obraNome = obraObj.nome;
+        }
+
+        let catNome = t.categoriaNome;
+        if (updates.categoriaId && updates.categoriaId !== t.categoriaId) {
+          const catObj = categorias.find(c => c.id === updates.categoriaId);
+          if (catObj) catNome = catObj.nome;
         }
 
         const updated = {
@@ -432,6 +476,8 @@ export const TicketProvider = ({ children }) => {
           prioridade: updates.prioridade || t.prioridade,
           obraId: updates.obraId || t.obraId,
           obraNome: obraNome,
+          categoriaId: updates.categoriaId || t.categoriaId,
+          categoriaNome: catNome,
           historico: newHist
         };
 
@@ -503,13 +549,93 @@ export const TicketProvider = ({ children }) => {
         }
       }
 
-      // Send email if ticket was concluded
       if (newStatus === 'Concluído') {
         sendEmailNotification({
           type: 'chamado_concluido',
           ticket: updatedTicket,
           comentario
         });
+      }
+    }
+  };
+
+  // CRUD FOR OBRAS
+  const addObra = async (obraData) => {
+    const newObra = {
+      id: `loc-${Date.now()}`,
+      nome: obraData.nome,
+      cidade: obraData.cidade,
+      engenheiro: obraData.engenheiro || 'A definir',
+      progresso: parseInt(obraData.progresso, 10) || 0,
+      status: obraData.status || 'Operacional',
+      codigoQr: `LOC-[#${obraData.nome.toUpperCase().replace(/\s+/g, '-')}]`
+    };
+
+    setObras(prev => [newObra, ...prev]);
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('obras').insert([{
+          id: newObra.id,
+          nome: newObra.nome,
+          cidade: newObra.cidade,
+          engenheiro: newObra.engenheiro,
+          progresso: newObra.progresso,
+          status: newObra.status
+        }]);
+      } catch (err) {
+        console.error('Erro ao salvar obra no Supabase:', err);
+      }
+    }
+    return newObra;
+  };
+
+  const deleteObra = async (obraId) => {
+    setObras(prev => prev.filter(o => o.id !== obraId));
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('obras').delete().eq('id', obraId);
+      } catch (err) {
+        console.error('Erro ao deletar obra no Supabase:', err);
+      }
+    }
+  };
+
+  // CRUD FOR CATEGORIAS
+  const addCategoria = async (catData) => {
+    const newCat = {
+      id: `cat-${Date.now()}`,
+      nome: catData.nome,
+      slaHoras: parseInt(catData.slaHoras, 10) || 8,
+      cor: catData.cor || '#66C1BF',
+      descricao: catData.descricao || ''
+    };
+
+    setCategorias(prev => [newCat, ...prev]);
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('categorias').insert([{
+          id: newCat.id,
+          nome: newCat.nome,
+          sla_horas: newCat.slaHoras,
+          cor: newCat.cor,
+          descricao: newCat.descricao
+        }]);
+      } catch (err) {
+        console.error('Erro ao salvar categoria no Supabase:', err);
+      }
+    }
+    return newCat;
+  };
+
+  const deleteCategoria = async (catId) => {
+    setCategorias(prev => prev.filter(c => c.id !== catId));
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('categorias').delete().eq('id', catId);
+      } catch (err) {
+        console.error('Erro ao deletar categoria no Supabase:', err);
       }
     }
   };
@@ -521,7 +647,7 @@ export const TicketProvider = ({ children }) => {
         toggleTheme,
         activeTab,
         setActiveTab,
-        chamados: visibleChamados, // Automatic and strict role-based filtered list
+        chamados: visibleChamados,
         allChamados: rawChamados,
         obras,
         categorias,
@@ -536,6 +662,10 @@ export const TicketProvider = ({ children }) => {
         updateTicketStatus,
         deleteTicket,
         editTicket,
+        addObra,
+        deleteObra,
+        addCategoria,
+        deleteCategoria,
         user: currentUser,
         currentUser,
         login,
@@ -543,6 +673,7 @@ export const TicketProvider = ({ children }) => {
         logout,
         ticketFilters,
         setTicketFilters,
+        clearTicketFilters,
         isOnlineDb: isSupabaseConfigured,
         isLoadingDb,
       }}

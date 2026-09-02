@@ -42,8 +42,10 @@ export default function TicketsView() {
     setIsNewTicketOpen, 
     ticketFilters,
     setTicketFilters,
+    clearTicketFilters,
     deleteTicket,
     updateTicketStatus,
+    editTicket,
     user
   } = useTickets();
 
@@ -66,11 +68,23 @@ export default function TicketsView() {
   const [selectedTickets, setSelectedTickets] = useState([]);
   const [bulkTechnician, setBulkTechnician] = useState('');
 
-  // Clear context filters
+  // Active Context Filter Detection
+  const hasActiveContextFilter = Boolean(
+    ticketFilters?.status ||
+    ticketFilters?.prioridade ||
+    ticketFilters?.obraId ||
+    ticketFilters?.categoriaId
+  );
+
+  // Clear context and local filters
   const clearContextFilters = () => {
-    if (setTicketFilters) {
-      setTicketFilters({});
-    }
+    clearTicketFilters && clearTicketFilters();
+    setSearchTerm('');
+    setSelectedObra('TODAS');
+    setSelectedCategoria('TODAS');
+    setSelectedStatus('TODOS');
+    setSelectedPrioridade('TODAS');
+    setCurrentPage(1);
   };
 
   // Filter Integration
@@ -270,14 +284,34 @@ export default function TicketsView() {
   return (
     <div className="space-y-5 animate-page-enter relative pb-16">
       {/* Filter Integration Banner */}
-      {Object.keys(ticketFilters || {}).length > 0 && (
-        <div className="bg-[#66C1BF]/10 border border-[#66C1BF]/30 rounded-[8px] p-3 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-[#66C1BF] text-sm font-bold">
-            <Filter className="w-4 h-4" />
-            <span>Filtro aplicado do Dashboard</span>
+      {hasActiveContextFilter && (
+        <div className="bg-[#66C1BF]/15 border border-[#66C1BF]/40 rounded-[8px] p-3 flex items-center justify-between animate-page-enter">
+          <div className="flex items-center gap-2 text-[#66C1BF] text-xs sm:text-sm font-bold flex-wrap">
+            <Filter className="w-4 h-4 shrink-0" />
+            <span>Filtro Ativo:</span>
+            {ticketFilters?.status && (
+              <span className="px-2 py-0.5 rounded bg-[#102A40] border border-[#66C1BF]/50 text-xs font-semibold text-[#F1F7F8]">
+                Status: {ticketFilters.status}
+              </span>
+            )}
+            {ticketFilters?.prioridade && (
+              <span className="px-2 py-0.5 rounded bg-[#102A40] border border-[#66C1BF]/50 text-xs font-semibold text-[#F1F7F8]">
+                Prioridade: {ticketFilters.prioridade}
+              </span>
+            )}
+            {ticketFilters?.obraId && (
+              <span className="px-2 py-0.5 rounded bg-[#102A40] border border-[#66C1BF]/50 text-xs font-semibold text-[#F1F7F8]">
+                Obra selecionada
+              </span>
+            )}
           </div>
-          <button onClick={clearContextFilters} className="text-[#9EB5C1] hover:text-[#F1F7F8] flex items-center gap-1 text-xs">
-            <X className="w-4 h-4" /> Limpar
+          <button 
+            type="button"
+            onClick={clearContextFilters} 
+            className="px-3 py-1 rounded-[6px] bg-[#14334C] hover:bg-[#66C1BF] text-[#F1F7F8] hover:text-[#08252B] border border-[#234963] hover:border-[#66C1BF] flex items-center gap-1.5 text-xs font-bold transition-all shrink-0 cursor-pointer"
+          >
+            <X className="w-3.5 h-3.5" /> 
+            <span>Remover Filtro</span>
           </button>
         </div>
       )}

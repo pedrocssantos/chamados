@@ -19,7 +19,7 @@ import {
 } from 'recharts';
 
 export default function DashboardView() {
-  const { chamados, obras, categorias, setActiveTab, setSelectedTicket, setIsNewTicketOpen, setTicketFilters } = useTickets();
+  const { chamados, obras, categorias, setActiveTab, setSelectedTicket, setIsNewTicketOpen, setTicketFilters, clearTicketFilters } = useTickets();
 
   const total = chamados.length;
   const abertos = chamados.filter(c => c.status === 'Aberto').length;
@@ -110,7 +110,7 @@ export default function DashboardView() {
         {/* Card 1: Total Chamados */}
         <div 
           onClick={() => {
-            setTicketFilters(prev => ({ ...prev, status: 'TODOS', prioridade: 'TODAS' }));
+            clearTicketFilters && clearTicketFilters();
             setActiveTab('chamados');
           }}
           className="cursor-pointer bg-[#102A40] border border-[#234963] hover:border-[#66C1BF]/50 rounded-[14px] p-5 shadow-sm transition-all hover:-translate-y-0.5 flex items-center justify-between"
@@ -120,7 +120,7 @@ export default function DashboardView() {
               TOTAL DE CHAMADOS
             </span>
             <p className="text-3xl font-black text-[#F1F7F8]">{total}</p>
-            <p className="text-xs font-bold text-[#66C1BF]">100% rastreados</p>
+            <p className="text-xs font-bold text-[#66C1BF]">Ver todos os chamados</p>
           </div>
           <div className="w-12 h-12 rounded-[10px] bg-[#66C1BF]/15 border border-[#66C1BF]/30 text-[#66C1BF] flex items-center justify-center shrink-0">
             <Headphones className="w-6 h-6" />
@@ -130,7 +130,7 @@ export default function DashboardView() {
         {/* Card 2: Em Atendimento */}
         <div 
           onClick={() => {
-            setTicketFilters(prev => ({ ...prev, status: 'Em Atendimento' }));
+            setTicketFilters({ status: 'Em Atendimento' });
             setActiveTab('chamados');
           }}
           className="cursor-pointer bg-[#102A40] border border-[#234963] hover:border-[#E2B552]/50 rounded-[14px] p-5 shadow-sm transition-all hover:-translate-y-0.5 flex items-center justify-between"
@@ -150,7 +150,7 @@ export default function DashboardView() {
         {/* Card 3: Concluídos */}
         <div 
           onClick={() => {
-            setTicketFilters(prev => ({ ...prev, status: 'Concluído' }));
+            setTicketFilters({ status: 'Concluído' });
             setActiveTab('chamados');
           }}
           className="cursor-pointer bg-[#102A40] border border-[#234963] hover:border-[#43C486]/50 rounded-[14px] p-5 shadow-sm transition-all hover:-translate-y-0.5 flex items-center justify-between"
@@ -170,7 +170,7 @@ export default function DashboardView() {
         {/* Card 4: Urgências de Rede */}
         <div 
           onClick={() => {
-            setTicketFilters(prev => ({ ...prev, prioridade: 'Crítica' }));
+            setTicketFilters({ prioridade: 'Crítica' });
             setActiveTab('chamados');
           }}
           className="cursor-pointer bg-[#102A40] border border-[#E16666]/40 rounded-[14px] p-5 shadow-sm transition-all hover:-translate-y-0.5 flex items-center justify-between bg-[#E16666]/5"
