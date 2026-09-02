@@ -8,7 +8,6 @@ import {
   MapPin, 
   FileText, 
   Camera, 
-  QrCode,
   CheckCircle2
 } from 'lucide-react';
 import { useTickets } from '../context/TicketContext';
@@ -20,7 +19,6 @@ export default function NewTicketModal() {
     obras, 
     categorias, 
     createTicket, 
-    prefilledQr,
     user 
   } = useTickets();
 
@@ -31,7 +29,6 @@ export default function NewTicketModal() {
   const [localizacao, setLocalizacao] = useState('');
   const [descricao, setDescricao] = useState('');
   const [solicitante, setSolicitante] = useState(`${user.nome} (${user.cargo})`);
-  const [qrCodeItem, setQrCodeItem] = useState(prefilledQr || '');
   const [fileName, setFileName] = useState('');
 
   if (!isNewTicketOpen) return null;
@@ -50,8 +47,7 @@ export default function NewTicketModal() {
       prioridade,
       localizacao,
       descricao,
-      solicitante,
-      qrCodeItem
+      solicitante
     });
   };
 
@@ -67,10 +63,10 @@ export default function NewTicketModal() {
             </div>
             <div>
               <h3 className="text-base font-extrabold text-[#F1F7F8]">
-                Abertura de Novo Chamado Técnico
+                Abertura de Novo Chamado de TI
               </h3>
               <p className="text-xs text-[#9EB5C1]">
-                Registro oficial para manutenção de obra, assistência técnica ou suporte.
+                Registro oficial para problemas de redes, computadores, sistemas e impressoras.
               </p>
             </div>
           </div>
@@ -85,19 +81,12 @@ export default function NewTicketModal() {
 
         {/* Modal Form */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 space-y-4">
-          
-          {prefilledQr && (
-            <div className="p-3 rounded-[6px] bg-[#66C1BF]/15 border border-[#66C1BF]/30 flex items-center gap-2 text-xs text-[#66C1BF] font-bold">
-              <QrCode className="w-4 h-4 shrink-0" />
-              <span>Chamado vinculado ao QR Code lido: <strong>{prefilledQr}</strong></span>
-            </div>
-          )}
 
           {/* Obra & Categoria row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="text-xs text-[#9EB5C1] font-semibold flex items-center gap-1">
-                <Building className="w-3.5 h-3.5 text-[#66C1BF]" /> Obra / Empreendimento *
+                <Building className="w-3.5 h-3.5 text-[#66C1BF]" /> Obra / Local de TI *
               </label>
               <select
                 value={obraId}
@@ -112,7 +101,7 @@ export default function NewTicketModal() {
 
             <div className="space-y-1">
               <label className="text-xs text-[#9EB5C1] font-semibold flex items-center gap-1">
-                <Layers className="w-3.5 h-3.5 text-[#66C1BF]" /> Categoria do Problema *
+                <Layers className="w-3.5 h-3.5 text-[#66C1BF]" /> Categoria de TI *
               </label>
               <select
                 value={categoriaId}
@@ -137,7 +126,7 @@ export default function NewTicketModal() {
                 required
                 value={titulo}
                 onChange={(e) => setTitulo(e.target.value)}
-                placeholder="Ex: Vazamento de água no 12º andar / Betoneira sem partida"
+                placeholder="Ex: Queda da internet Starlink no contêiner / Reset de Senha Sienge"
                 className="w-full px-3 py-2.5 rounded-[6px] bg-[#081724] border border-[#234963] focus:border-[#66C1BF] text-xs text-[#F1F7F8] placeholder-[#7893A2] focus:outline-none"
               />
             </div>
@@ -151,10 +140,10 @@ export default function NewTicketModal() {
                 onChange={(e) => setPrioridade(e.target.value)}
                 className="w-full px-3 py-2.5 rounded-[6px] bg-[#081724] border border-[#234963] focus:border-[#66C1BF] text-xs font-bold text-[#F1F7F8] focus:outline-none"
               >
-                <option value="Baixa">Baixa (Padrão)</option>
-                <option value="Média">Média</option>
+                <option value="Baixa">Baixa</option>
+                <option value="Média">Média (Padrão)</option>
                 <option value="Alta">Alta</option>
-                <option value="Crítica">Crítica (Interdição/Risco)</option>
+                <option value="Crítica">Crítica (Rede/Link Offline)</option>
               </select>
             </div>
           </div>
@@ -163,14 +152,14 @@ export default function NewTicketModal() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="text-xs text-[#9EB5C1] font-semibold flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5 text-[#66C1BF]" /> Localização Interna na Obra *
+                <MapPin className="w-3.5 h-3.5 text-[#66C1BF]" /> Localização Exata *
               </label>
               <input
                 type="text"
                 required
                 value={localizacao}
                 onChange={(e) => setLocalizacao(e.target.value)}
-                placeholder="Ex: Bloco A - 5º Andar - Apt 52 / Central de Fôrmas"
+                placeholder="Ex: Contêiner de Engenharia / 2º Andar Sede"
                 className="w-full px-3 py-2.5 rounded-[6px] bg-[#081724] border border-[#234963] focus:border-[#66C1BF] text-xs text-[#F1F7F8] placeholder-[#7893A2] focus:outline-none"
               />
             </div>
@@ -198,7 +187,7 @@ export default function NewTicketModal() {
               rows={4}
               value={descricao}
               onChange={(e) => setDescricao(e.target.value)}
-              placeholder="Descreva com detalhes o problema encontrado, sintomas, riscos envolvidos e observações para a equipe de manutenção..."
+              placeholder="Descreva o problema encontrado, mensagem de erro ou equipamento afetado..."
               className="w-full px-3 py-2.5 rounded-[6px] bg-[#081724] border border-[#234963] focus:border-[#66C1BF] text-xs text-[#F1F7F8] placeholder-[#7893A2] focus:outline-none resize-none"
             />
           </div>
@@ -206,7 +195,7 @@ export default function NewTicketModal() {
           {/* Image Upload Simulation */}
           <div className="space-y-1">
             <label className="text-xs text-[#9EB5C1] font-semibold flex items-center gap-1">
-              <Camera className="w-3.5 h-3.5 text-[#66C1BF]" /> Foto / Evidência da Obra (Opcional)
+              <Camera className="w-3.5 h-3.5 text-[#66C1BF]" /> Captura / Print de Erro (Opcional)
             </label>
             <div className="border-2 border-dashed border-[#234963] hover:border-[#66C1BF]/50 rounded-[8px] p-4 text-center bg-[#081724]/60 transition-colors cursor-pointer relative">
               <input 
@@ -219,7 +208,7 @@ export default function NewTicketModal() {
               {fileName ? (
                 <p className="text-xs font-bold text-[#66C1BF]">Arquivo selecionado: {fileName}</p>
               ) : (
-                <p className="text-xs text-[#9EB5C1]">Clique ou arraste uma foto do problema na obra</p>
+                <p className="text-xs text-[#9EB5C1]">Clique para anexar imagem ou print de erro</p>
               )}
             </div>
           </div>

@@ -7,8 +7,6 @@ import DashboardView from './components/DashboardView';
 import TicketsView from './components/TicketsView';
 import TicketDetailModal from './components/TicketDetailModal';
 import NewTicketModal from './components/NewTicketModal';
-import QrScannerView from './components/QrScannerView';
-import QrStudioView from './components/QrStudioView';
 import ObrasView from './components/ObrasView';
 import CategoriasView from './components/CategoriasView';
 import RelatoriosView from './components/RelatoriosView';
@@ -25,10 +23,6 @@ function MainContent() {
         return <TicketsView />;
       case 'termos':
         return <TermosNotebooksView />;
-      case 'scanner':
-        return <QrScannerView />;
-      case 'etiquetas':
-        return <QrStudioView />;
       case 'obras':
         return <ObrasView />;
       case 'categorias':
