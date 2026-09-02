@@ -34,18 +34,20 @@ export default function ProfileView() {
   const isSupport = user.role === 'suporte';
 
   // User tickets calculation
-  const userTickets = chamados.filter(t => 
-    (t.solicitanteId && t.solicitanteId === user.id) ||
-    (t.solicitanteEmail && t.solicitanteEmail.toLowerCase() === user.email.toLowerCase()) ||
-    (t.solicitante && t.solicitante.toLowerCase().includes(user.nome.toLowerCase()))
-  );
+  const userTickets = (chamados || []).filter(t => {
+    if (!t) return false;
+    if (t.solicitanteId && user?.id && t.solicitanteId === user.id) return true;
+    if (t.solicitanteEmail && user?.email && t.solicitanteEmail.toLowerCase() === user.email.toLowerCase()) return true;
+    if (t.solicitante && user?.nome && t.solicitante.toLowerCase().includes(user.nome.toLowerCase())) return true;
+    return false;
+  });
 
-  const totalUserTickets = isSupport ? chamados.length : userTickets.length;
+  const totalUserTickets = isSupport ? (chamados || []).length : userTickets.length;
   const pendingUserTickets = isSupport 
-    ? chamados.filter(c => c.status !== 'Concluído').length 
+    ? (chamados || []).filter(c => c.status !== 'Concluído').length 
     : userTickets.filter(c => c.status !== 'Concluído').length;
   const doneUserTickets = isSupport 
-    ? chamados.filter(c => c.status === 'Concluído').length 
+    ? (chamados || []).filter(c => c.status === 'Concluído').length 
     : userTickets.filter(c => c.status === 'Concluído').length;
 
   const handleSubmit = (e) => {

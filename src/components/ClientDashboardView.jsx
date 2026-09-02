@@ -18,11 +18,13 @@ export default function ClientDashboardView() {
   const { chamados, user, obras, setIsNewTicketOpen, setSelectedTicket } = useTickets();
 
   // Filter tickets that belong to this client's obra or were requested by him
-  const userObra = obras.find(o => o.id === user.obraId) || obras[0];
-  const myTickets = chamados.filter(t => 
-    t.obraId === user.obraId || 
-    (t.solicitante && t.solicitante.toLowerCase().includes(user.nome.toLowerCase()))
-  );
+  const userObra = obras.find(o => o.id === user?.obraId) || obras[0] || { nome: 'Minha Obra', cidade: 'São Paulo - SP', progresso: 50 };
+  const myTickets = (chamados || []).filter(t => {
+    if (!t) return false;
+    if (user?.obraId && t.obraId === user.obraId) return true;
+    if (user?.nome && t.solicitante && t.solicitante.toLowerCase().includes(user.nome.toLowerCase())) return true;
+    return false;
+  });
 
   const abertos = myTickets.filter(t => t.status === 'Aberto').length;
   const emAtendimento = myTickets.filter(t => t.status === 'Em Atendimento' || t.status === 'Aguardando Peça').length;
