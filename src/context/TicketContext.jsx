@@ -693,6 +693,17 @@ export const TicketProvider = ({ children }) => {
     }
   };
 
+  const deleteCategoria = async (catId) => {
+    setCategorias(prev => prev.filter(c => c.id !== catId));
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('categorias').delete().eq('id', catId);
+      } catch (err) {
+        console.error('Erro ao deletar categoria no Supabase:', err);
+      }
+    }
+  };
+
   const updateUserProfile = (profileData) => {
     if (!currentUser) return;
     const initials = (profileData.nome || currentUser.nome)
