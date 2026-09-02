@@ -197,7 +197,7 @@ export const TicketProvider = ({ children }) => {
   };
 
   const updateTicketStatus = (ticketId, newStatus, tecnico, comentario) => {
-    const nowStr = brazilNow();
+    const nowStr = new Date().toISOString().replace('T', ' ').substring(0, 16);
     
     setChamados(prev => prev.map(t => {
       if (t.id === ticketId) {
@@ -243,6 +243,9 @@ export const TicketProvider = ({ children }) => {
         setActiveTab,
         chamados,
         termos,
+        setTermos,
+        addTermo,
+        updateTermo,
         obras,
         categorias,
         tecnicos,
@@ -259,9 +262,7 @@ export const TicketProvider = ({ children }) => {
         user,
         setUser,
         ticketFilters,
-        setTicketFilters,
-        addTermo,
-        updateTermo
+        setTicketFilters
       }}
     >
       {children}

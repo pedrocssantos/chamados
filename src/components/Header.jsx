@@ -1,9 +1,13 @@
 import React from 'react';
-import { MonitorCheck, Plus, Sun, Moon } from 'lucide-react';
+import { MonitorCheck, Plus, Sun, Moon, Bell } from 'lucide-react';
 import { useTickets } from '../context/TicketContext';
 
 export default function Header() {
-  const { theme, toggleTheme, setActiveTab, setIsNewTicketOpen, user } = useTickets();
+  const { theme, toggleTheme, setActiveTab, setIsNewTicketOpen, user, chamados } = useTickets();
+
+  const hasSlaBreach = chamados.some(t => 
+    t.prazoSla && new Date() > new Date(t.prazoSla.replace(' ', 'T')) && t.status !== 'Concluído'
+  );
 
   return (
     <header className="sticky top-0 z-50 w-full bg-[#102A40] border-b border-[#66C1BF]/45 shadow-[0_12px_30px_rgba(0,0,0,0.22)] px-4 sm:px-8 py-3.5 transition-colors">
@@ -29,6 +33,18 @@ export default function Header() {
 
         {/* Quick Actions Header Controls */}
         <div className="flex items-center gap-2 sm:gap-2.5">
+          {/* Notification Bell */}
+          <button
+            type="button"
+            className="relative p-2 rounded-[6px] bg-[#14334C] hover:bg-[#163A55] text-[#66C1BF] border border-[#234963] hover:border-[#66C1BF] transition-all flex items-center justify-center cursor-pointer"
+            title="Notificações"
+          >
+            <Bell className="w-4 h-4" />
+            {hasSlaBreach && (
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#E16666] border-2 border-[#14334C]" />
+            )}
+          </button>
+
           {/* Theme Switcher Button */}
           <button
             type="button"
@@ -62,7 +78,7 @@ export default function Header() {
           {/* User Badge / Profile */}
           <div className="hidden md:flex items-center gap-2 pl-2 border-l border-[#234963]">
             <div className="w-8 h-8 rounded-full bg-[#14334C] border border-[#66C1BF] text-[#66C1BF] font-bold text-xs flex items-center justify-center">
-              TI
+              {user.avatar || 'TI'}
             </div>
             <div className="text-left leading-tight hidden lg:block">
               <p className="text-[12px] font-bold text-[#F1F7F8] truncate max-w-[120px]">{user.nome}</p>

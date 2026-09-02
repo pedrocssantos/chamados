@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { FileText, Laptop, CheckCircle, Plus, Search, Download, ShieldCheck } from 'lucide-react';
-import { MOCK_TERMOS_NOTEBOOKS } from '../data/mockData';
+import { useTickets } from '../context/TicketContext';
 
 export default function TermosNotebooksView() {
-  const [termos, setTermos] = useState(MOCK_TERMOS_NOTEBOOKS);
+  const { termos, addTermo } = useTickets();
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [colaborador, setColaborador] = useState('');
@@ -31,7 +31,7 @@ export default function TermosNotebooksView() {
       status: 'Aguardando Assinatura'
     };
 
-    setTermos([newTermo, ...termos]);
+    addTermo(newTermo);
     setIsModalOpen(false);
     setColaborador('');
     setCargo('');

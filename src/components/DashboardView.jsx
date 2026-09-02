@@ -19,7 +19,7 @@ import {
 } from 'recharts';
 
 export default function DashboardView() {
-  const { chamados, obras, categorias, setActiveTab, setSelectedTicket, setIsNewTicketOpen } = useTickets();
+  const { chamados, obras, categorias, setActiveTab, setSelectedTicket, setIsNewTicketOpen, setTicketFilters } = useTickets();
 
   const total = chamados.length;
   const abertos = chamados.filter(c => c.status === 'Aberto').length;
@@ -109,7 +109,10 @@ export default function DashboardView() {
         
         {/* Card 1: Total Chamados */}
         <div 
-          onClick={() => setActiveTab('chamados')}
+          onClick={() => {
+            setTicketFilters(prev => ({ ...prev, status: 'TODOS', prioridade: 'TODAS' }));
+            setActiveTab('chamados');
+          }}
           className="cursor-pointer bg-[#102A40] border border-[#234963] hover:border-[#66C1BF]/50 rounded-[14px] p-5 shadow-sm transition-all hover:-translate-y-0.5 flex items-center justify-between"
         >
           <div className="space-y-1">
@@ -126,7 +129,10 @@ export default function DashboardView() {
 
         {/* Card 2: Em Atendimento */}
         <div 
-          onClick={() => setActiveTab('chamados')}
+          onClick={() => {
+            setTicketFilters(prev => ({ ...prev, status: 'Em Atendimento' }));
+            setActiveTab('chamados');
+          }}
           className="cursor-pointer bg-[#102A40] border border-[#234963] hover:border-[#E2B552]/50 rounded-[14px] p-5 shadow-sm transition-all hover:-translate-y-0.5 flex items-center justify-between"
         >
           <div className="space-y-1">
@@ -141,14 +147,17 @@ export default function DashboardView() {
           </div>
         </div>
 
-        {/* Card 3: Resolvidos */}
+        {/* Card 3: Concluídos */}
         <div 
-          onClick={() => setActiveTab('chamados')}
+          onClick={() => {
+            setTicketFilters(prev => ({ ...prev, status: 'Concluído' }));
+            setActiveTab('chamados');
+          }}
           className="cursor-pointer bg-[#102A40] border border-[#234963] hover:border-[#43C486]/50 rounded-[14px] p-5 shadow-sm transition-all hover:-translate-y-0.5 flex items-center justify-between"
         >
           <div className="space-y-1">
             <span className="text-[11px] font-extrabold uppercase text-[#43C486] tracking-wider block">
-              RESOLVIDOS NO SLA
+              CONCLUÍDOS
             </span>
             <p className="text-3xl font-black text-[#F1F7F8]">{concluidos}</p>
             <p className="text-xs text-[#9EB5C1]">Concluídos com sucesso</p>
@@ -160,7 +169,10 @@ export default function DashboardView() {
 
         {/* Card 4: Urgências de Rede */}
         <div 
-          onClick={() => setActiveTab('chamados')}
+          onClick={() => {
+            setTicketFilters(prev => ({ ...prev, prioridade: 'Crítica' }));
+            setActiveTab('chamados');
+          }}
           className="cursor-pointer bg-[#102A40] border border-[#E16666]/40 rounded-[14px] p-5 shadow-sm transition-all hover:-translate-y-0.5 flex items-center justify-between bg-[#E16666]/5"
         >
           <div className="space-y-1">
@@ -348,6 +360,9 @@ export default function DashboardView() {
                   </span>
                   {getPriorityBadge(ticket.prioridade)}
                   {getStatusBadge(ticket.status)}
+                  {ticket.prazoSla && new Date() > new Date(ticket.prazoSla.replace(' ', 'T')) && ticket.status !== 'Concluído' && (
+                    <span className="px-2 py-0.5 rounded-[4px] text-[10px] font-extrabold bg-[#E16666] text-[#0B1D2D] animate-pulse">VENCIDO</span>
+                  )}
                   <span className="text-[11px] text-[#7893A2]">{ticket.categoriaNome}</span>
                 </div>
                 <h4 className="text-sm font-extrabold text-[#F1F7F8] group-hover:text-[#66C1BF] transition-colors truncate">
