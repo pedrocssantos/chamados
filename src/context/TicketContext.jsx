@@ -29,7 +29,34 @@ export const brazilDateFromNow = (hoursAdded) => {
   return `${dd}/${mm}/${yyyy} ${hh}:${min}`;
 };
 
-// Map snake_case from DB to camelCase for frontend
+// Initial Seed Users (Suporte TI and Cliente de Obra)
+const DEFAULT_USERS = [
+  {
+    id: 'usr-1',
+    nome: 'Pedro Henrique Santos',
+    email: 'pedro.santos@maximoaldana.com.br',
+    password: 'bXwxAUL5@pedro24',
+    cargo: 'Tecnologia da Informação (TI)',
+    telefone: '(11) 98765-4321',
+    obraId: 'loc-3',
+    obraNome: 'Sede Corporativa Maximo Aldana',
+    role: 'suporte', // 'suporte' (admin) | 'cliente' (solicitante obra)
+    avatar: 'PS'
+  },
+  {
+    id: 'usr-2',
+    nome: 'Eng. Roberto Farias',
+    email: 'roberto.farias@maximoaldana.com.br',
+    password: 'senha123',
+    cargo: 'Engenheiro Residente',
+    telefone: '(11) 97654-3210',
+    obraId: 'loc-1',
+    obraNome: 'Obra Residencial Grand Aldana',
+    role: 'cliente',
+    avatar: 'RF'
+  }
+];
+
 const mapDbChamadoToFront = (row) => ({
   id: row.id,
   titulo: row.titulo,
@@ -80,12 +107,30 @@ export const TicketProvider = ({ children }) => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isLoadingDb, setIsLoadingDb] = useState(false);
 
+  // Authentication State
+  const [users, setUsers] = useState(() => {
+    try {
+      const saved = localStorage.getItem('maximo_users_db');
+      return saved ? JSON.parse(saved) : DEFAULT_USERS;
+    } catch (e) {
+      return DEFAULT_USERS;
+    }
+  });
+
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('maximo_auth_user');
+      return saved ? JSON.parse(saved) : DEFAULT_USERS[0]; // Default logged in as Pedro
+    } catch (e) {
+      return DEFAULT_USERS[0];
+    }
+  });
+
   const [chamados, setChamados] = useState(() => {
     try {
       const saved = localStorage.getItem('maximo_chamados_ti');
       return saved ? JSON.parse(saved) : MOCK_CHAMADOS;
     } catch (e) {
-      console.error('Failed to parse chamados', e);
       return MOCK_CHAMADOS;
     }
   });
@@ -97,12 +142,6 @@ export const TicketProvider = ({ children }) => {
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [isNewTicketOpen, setIsNewTicketOpen] = useState(false);
   const [scannedQrCode, setScannedQrCode] = useState(null);
-  const [user, setUser] = useState({
-    nome: 'Pedro Henrique Santos',
-    cargo: 'Tecnologia da Informação (TI)',
-    email: 'pedro.santos@maximoaldana.com.br',
-    avatar: 'PS'
-  });
 
   const [ticketFilters, setTicketFiltersState] = useState({ status: null, prioridade: null, obraId: null, categoriaId: null });
 
@@ -111,7 +150,19 @@ export const TicketProvider = ({ children }) => {
     setActiveTab('chamados');
   };
 
-  // Sync to localStorage as offline cache
+  // Sync users and current auth session
+  useEffect(() => {
+    localStorage.setItem('maximo_users_db', JSON.stringify(users));
+  }, [users]);
+
+  useEffect(() => {
+    if (currentUser) {
+      localStorage.setItem('maximo_auth_user', JSON.stringify(currentUser));
+    } else {
+      localStorage.removeItem('maximo_auth_user');
+    }
+  }, [currentUser]);
+
   useEffect(() => {
     localStorage.setItem('maximo_chamados_ti', JSON.stringify(chamados));
   }, [chamados]);
@@ -188,6 +239,62 @@ export const TicketProvider = ({ children }) => {
     setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
   };
 
+  // AUTH METHODS
+  const login = (email, password) => {
+    const foundUser = users.find(u => 
+      u.email.toLowerCase().trim() === email.toLowerCase().trim() && 
+      u.password === password
+    );
+
+    if (foundUser) {
+      setCurrentUser(foundUser);
+      setActiveTab('dashboard');
+      return { success: true, user: foundUser };
+    }
+
+    return { 
+      success: false, 
+      message: 'E-mail corporativo ou senha incorretos. Verifique suas credenciais.' 
+    };
+  };
+
+  const registerUser = (userData) => {
+    const existing = users.find(u => u.email.toLowerCase().trim() === userData.email.toLowerCase().trim());
+    if (existing) {
+      return { success: false, message: 'Já existe um cadastro com este e-mail corporativo.' };
+    }
+
+    const initials = userData.nome
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map(n => n[0].toUpperCase())
+      .join('');
+
+    const newUser = {
+      id: `usr-${Date.now()}`,
+      nome: userData.nome,
+      email: userData.email,
+      telefone: userData.telefone || '',
+      cargo: userData.cargo || 'Colaborador',
+      obraId: userData.obraId || 'loc-1',
+      obraNome: userData.obraNome || 'Obra Residencial Grand Aldana',
+      role: userData.role || 'cliente',
+      password: userData.password,
+      avatar: initials || 'MA'
+    };
+
+    setUsers(prev => [newUser, ...prev]);
+    setCurrentUser(newUser);
+    setActiveTab('dashboard');
+    return { success: true, user: newUser };
+  };
+
+  const logout = () => {
+    setCurrentUser(null);
+    setSelectedTicket(null);
+  };
+
   const createTicket = async (ticketData) => {
     const maxSeq = chamados.reduce((max, t) => {
       const parts = (t.id || '').split('-');
@@ -204,18 +311,20 @@ export const TicketProvider = ({ children }) => {
 
     const obraObj = obras.find(o => o.id === ticketData.obraId) || obras[0];
 
+    const requesterName = ticketData.solicitante || `${currentUser?.nome || 'Colaborador'} (${currentUser?.cargo || 'Obra'})`;
+
     const newTicket = {
       id: newId,
       titulo: ticketData.titulo,
       descricao: ticketData.descricao,
-      obraId: ticketData.obraId,
-      obraNome: obraObj?.nome || 'Não especificado',
+      obraId: ticketData.obraId || currentUser?.obraId || obras[0]?.id,
+      obraNome: obraObj?.nome || currentUser?.obraNome || 'Não especificado',
       localizacao: ticketData.localizacao,
       categoriaId: ticketData.categoriaId,
       categoriaNome: catObj?.nome || 'TI Geral',
       prioridade: ticketData.prioridade || 'Média',
       status: 'Aberto',
-      solicitante: ticketData.solicitante || `${user.nome} (${user.cargo})`,
+      solicitante: requesterName,
       tecnicoAtribuido: 'Pendente de Atribuição',
       anexo: ticketData.anexo || null,
       anexoNome: ticketData.anexoNome || null,
@@ -224,7 +333,7 @@ export const TicketProvider = ({ children }) => {
       historico: [
         {
           data: nowStr,
-          autor: ticketData.solicitante || user.nome,
+          autor: requesterName,
           texto: `Chamado registrado com sucesso. Prioridade: ${ticketData.prioridade || 'Média'}.`
         }
       ]
@@ -281,7 +390,7 @@ export const TicketProvider = ({ children }) => {
       if (t.id === ticketId) {
         const newHist = [...t.historico, {
           data: nowStr,
-          autor: user.nome,
+          autor: currentUser?.nome || 'Técnico TI',
           texto: 'Chamado editado (título/descrição/localização/prioridade).'
         }];
         
@@ -331,14 +440,14 @@ export const TicketProvider = ({ children }) => {
         if (comentario) {
           newHist.push({
             data: nowStr,
-            autor: user.nome,
+            autor: currentUser?.nome || 'Técnico TI',
             texto: comentario
           });
         }
         if (newStatus && newStatus !== t.status) {
           newHist.push({
             data: nowStr,
-            autor: user.nome,
+            autor: currentUser?.nome || 'Técnico TI',
             texto: `Status alterado de "${t.status}" para "${newStatus}".`
           });
         }
@@ -402,8 +511,11 @@ export const TicketProvider = ({ children }) => {
         updateTicketStatus,
         deleteTicket,
         editTicket,
-        user,
-        setUser,
+        user: currentUser,
+        currentUser,
+        login,
+        registerUser,
+        logout,
         ticketFilters,
         setTicketFilters,
         isOnlineDb: isSupabaseConfigured,

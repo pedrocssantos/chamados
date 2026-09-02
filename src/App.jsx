@@ -4,20 +4,27 @@ import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import MobileNav from './components/MobileNav';
 import DashboardView from './components/DashboardView';
+import ClientDashboardView from './components/ClientDashboardView';
 import TicketsView from './components/TicketsView';
 import TicketDetailModal from './components/TicketDetailModal';
 import NewTicketModal from './components/NewTicketModal';
 import ObrasView from './components/ObrasView';
 import CategoriasView from './components/CategoriasView';
 import RelatoriosView from './components/RelatoriosView';
+import AuthView from './components/AuthView';
 
 function MainContent() {
-  const { activeTab } = useTickets();
+  const { activeTab, currentUser } = useTickets();
+
+  // If not logged in, show authentication screen
+  if (!currentUser) {
+    return <AuthView />;
+  }
 
   const renderTab = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <DashboardView />;
+        return currentUser.role === 'cliente' ? <ClientDashboardView /> : <DashboardView />;
       case 'chamados':
         return <TicketsView />;
       case 'obras':
@@ -27,18 +34,18 @@ function MainContent() {
       case 'relatorios':
         return <RelatoriosView />;
       default:
-        return <DashboardView />;
+        return currentUser.role === 'cliente' ? <ClientDashboardView /> : <DashboardView />;
     }
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0B1D2D] text-[#F1F7F8] antialiased selection:bg-[#66C1BF]/30 selection:text-[#66C1BF]">
-      {/* Sticky Header */}
+      {/* Sticky Header with User info & logout */}
       <Header />
 
       {/* Main Container with Sidebar + Content */}
       <div className="flex-1 flex max-w-[1440px] w-full mx-auto relative items-start">
-        {/* Desktop Sidebar */}
+        {/* Desktop Sidebar (customized for Cliente vs Suporte) */}
         <Sidebar />
 
         {/* Main Content Area */}
