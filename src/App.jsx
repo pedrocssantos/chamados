@@ -41,8 +41,8 @@ class ErrorBoundary extends Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-[#0B1D2D] text-[#F1F7F8] flex items-center justify-center p-6 text-center">
-          <div className="max-w-md bg-[#102A40] border border-[#234963] p-8 rounded-[14px] shadow-2xl space-y-4">
+        <div className="min-h-screen bg-[#0B1D2D] text-[#F1F7F8] flex items-center justify-center p-4 text-center">
+          <div className="max-w-lg w-full bg-[#102A40] border border-[#234963] p-6 sm:p-8 rounded-[14px] shadow-2xl space-y-4">
             <div className="w-12 h-12 rounded-full bg-[#E16666]/15 border border-[#E16666]/30 text-[#E16666] flex items-center justify-center mx-auto">
               <AlertCircle className="w-6 h-6" />
             </div>
@@ -50,6 +50,16 @@ class ErrorBoundary extends Component {
             <p className="text-xs text-[#9EB5C1]">
               Clique no botão abaixo para restaurar o estado da aplicação e reiniciar com segurança.
             </p>
+
+            {this.state.error && (
+              <div className="text-left bg-[#081724] border border-[#E16666]/30 p-3 rounded-[6px] text-[11px] font-mono text-[#E16666] overflow-x-auto max-h-40 overflow-y-auto">
+                <p className="font-bold">{this.state.error.toString()}</p>
+                {this.state.error.stack && (
+                  <pre className="mt-1 text-[10px] text-[#7893A2] whitespace-pre-wrap">{this.state.error.stack}</pre>
+                )}
+              </div>
+            )}
+
             <button
               onClick={this.handleReset}
               className="px-5 py-2.5 rounded-[8px] bg-[#66C1BF] hover:bg-[#4FA9A7] text-[#08252B] font-extrabold text-xs flex items-center justify-center gap-2 mx-auto cursor-pointer"
